@@ -101,23 +101,23 @@ export default function AdminIssuesTable({
         </div>
       </div>
 
-      {/* Filter Toolbar: Status pills on left, Category select & count on right */}
+      {/* Filter toolbar — every filter is one dropdown, so the table header
+          stays a single clean row instead of two rows of pills. */}
       <div className="admin-table-toolbar">
-        <div className="admin-filter-pills" role="group" aria-label="Filter by status">
-          {statuses.map((status) => (
-            <button
-              key={status}
-              type="button"
-              className={`admin-filter-pill ${statusFilter === status ? 'active' : ''}`}
-              aria-pressed={statusFilter === status}
-              onClick={() => onStatusFilterChange(status)}
-            >
-              {status}
-            </button>
-          ))}
-        </div>
+        <div className="admin-toolbar-filters">
+          <select
+            className="admin-category-select"
+            value={statusFilter}
+            onChange={(e) => onStatusFilterChange(e.target.value)}
+            aria-label="Filter by status"
+          >
+            {statuses.map((status) => (
+              <option key={status} value={status}>
+                {status === 'All' ? 'All statuses' : status}
+              </option>
+            ))}
+          </select>
 
-        <div className="admin-toolbar-right">
           <select
             className="admin-category-select"
             value={categoryFilter}
@@ -131,6 +131,27 @@ export default function AdminIssuesTable({
             ))}
           </select>
 
+          {/* The review gate every student report waits at. The pending count
+              rides along in the label so the queue size stays visible. */}
+          <select
+            className="admin-category-select"
+            value={moderationFilter}
+            onChange={(e) => onModerationFilterChange(e.target.value)}
+            aria-label="Filter by review state"
+          >
+            {moderationFilters.map((state) => (
+              <option key={state} value={state}>
+                {state === 'All'
+                  ? 'All reviews'
+                  : state === 'Pending' && pendingCount > 0
+                    ? `Pending (${pendingCount})`
+                    : state}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="admin-toolbar-right">
           {hasFilters && (
             <button type="button" className="admin-clear-filters-btn" onClick={onClearFilters}>
               Clear filters
@@ -140,28 +161,6 @@ export default function AdminIssuesTable({
           <span className="admin-table-count">
             {isLoading ? 'Loading…' : `Showing ${issues.length} of ${totalCount}`}
           </span>
-        </div>
-      </div>
-
-      {/* Review Queue Toolbar — the gate every student report waits at.
-          Without this the admin cannot narrow the list to reports that still
-          need a decision, so the approve/reject buttons have no targets. */}
-      <div className="admin-table-toolbar admin-table-toolbar-secondary">
-        <div className="admin-filter-pills" role="group" aria-label="Filter by review state">
-          {moderationFilters.map((state) => (
-            <button
-              key={state}
-              type="button"
-              className={`admin-filter-pill moderation-filter-pill ${moderationFilter === state ? 'active' : ''}`}
-              aria-pressed={moderationFilter === state}
-              onClick={() => onModerationFilterChange(state)}
-            >
-              {state === 'All' ? 'All reviews' : state}
-              {state === 'Pending' && pendingCount > 0 && (
-                <span className="moderation-filter-count">{pendingCount}</span>
-              )}
-            </button>
-          ))}
         </div>
       </div>
 

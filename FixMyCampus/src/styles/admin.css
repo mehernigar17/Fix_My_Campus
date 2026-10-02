@@ -731,6 +731,15 @@
   gap: 0.4rem;
 }
 
+/* Every table filter is a single dropdown, grouped on the left of the toolbar */
+.admin-toolbar-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+
 .admin-filter-pill {
   padding: 0.4rem 0.85rem;
   border-radius: 999px;
