@@ -35,7 +35,7 @@ export const loginUser = async ({ email, password, role }) => {
     // Graceful offline mock session for frontend testing
     const mockUser = {
       id: 'usr-1',
-      name: role === 'admin' ? 'Campus Admin' : 'Maya Sharma',
+      name: role === 'admin' ? 'Arjun Rao' : 'Maya Sharma',
       email: email || (role === 'admin' ? 'admin@campus.edu' : 'student@campus.edu'),
       role: role || 'student',
     };

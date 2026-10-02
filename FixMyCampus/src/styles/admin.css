@@ -1,0 +1,712 @@
+/* ==========================================================================
+   FixMyCampus — Admin Module Stylesheet
+   Theme: Forest Green (#144634), Dark Green Hover (#0f3527), Mint Accent (#86efac)
+   All buttons, interactive elements, icons, and focus states use the brand green theme.
+   ========================================================================== */
+
+:root {
+  --fmc-primary: #144634;
+  --fmc-primary-hover: #0f3527;
+  --fmc-primary-light: #f0fdf4;
+  --fmc-accent: #86efac;
+  --fmc-bg: #f1f6f2;
+  --fmc-card-bg: #ffffff;
+  --fmc-text-main: #0f172a;
+  --fmc-text-muted: #52665e;
+  --fmc-text-sub: #64748b;
+  --fmc-border: #e2ece5;
+  --fmc-border-light: #edf3ee;
+  --fmc-radius-card: 20px;
+  --fmc-radius-input: 12px;
+  --fmc-radius-pill: 9999px;
+  --fmc-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.02);
+  --fmc-shadow-md: 0 4px 16px rgba(20, 70, 52, 0.08);
+  --fmc-shadow-lg: 0 20px 50px -10px rgba(15, 23, 42, 0.25);
+  --fmc-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.admin-home-page {
+  min-height: 100vh;
+  background-color: var(--fmc-bg);
+  color: var(--fmc-text-main);
+  font-family: var(--fmc-font-sans);
+  padding-bottom: 5rem;
+  line-height: 1.5;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   1. ADMIN NAVBAR
+   ───────────────────────────────────────────────────────────── */
+.admin-navbar {
+  background-color: var(--fmc-card-bg);
+  border-bottom: 1px solid var(--fmc-border);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.admin-navbar-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+}
+
+.admin-brand-separator {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  margin: 0 0.25rem;
+}
+
+.admin-portal-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.admin-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-user-info-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.35rem 0.65rem 0.35rem 0.4rem;
+  background-color: #ffffff;
+  border-radius: var(--fmc-radius-pill);
+}
+
+.admin-avatar-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: #e5d8cc;
+  color: #5c4333;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-user-details {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.admin-user-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--fmc-text-main);
+}
+
+.admin-user-role-title {
+  font-size: 0.7rem;
+  color: var(--fmc-text-sub);
+}
+
+.btn-admin-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.15rem;
+  background-color: #ffffff;
+  border: 1.5px solid var(--fmc-border);
+  border-radius: var(--fmc-radius-input);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--fmc-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-admin-logout:hover {
+  border-color: var(--fmc-primary);
+  background-color: var(--fmc-primary-light);
+  color: var(--fmc-primary);
+}
+
+.logout-icon {
+  width: 17px;
+  height: 17px;
+  stroke: var(--fmc-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   2. OPERATIONS OVERVIEW & 4 STAT CARDS
+   ───────────────────────────────────────────────────────────── */
+.admin-main-content {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 0;
+}
+
+.admin-overview-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-eyebrow {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--fmc-primary);
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+
+.admin-main-title {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: #0a1c15;
+  letter-spacing: -1.2px;
+  margin-bottom: 0.35rem;
+}
+
+.admin-subtitle {
+  font-size: 1rem;
+  color: var(--fmc-text-muted);
+}
+
+.live-data-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.95rem;
+  background-color: #ffffff;
+  border: 1px solid var(--fmc-border);
+  border-radius: var(--fmc-radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--fmc-primary);
+  box-shadow: var(--fmc-shadow-sm);
+}
+
+.live-green-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #16a34a;
+  box-shadow: 0 0 0 2px #bbf7d0;
+}
+
+/* 4 Stat Cards Grid */
+.admin-stats-4grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.admin-stat-card {
+  background-color: var(--fmc-card-bg);
+  border: 1px solid var(--fmc-border);
+  border-radius: 18px;
+  padding: 1.35rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  box-shadow: var(--fmc-shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+.admin-stat-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-stat-icon-wrapper.rose-box {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.admin-stat-icon-wrapper.amber-box {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.admin-stat-icon-wrapper.mint-box {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.admin-stat-icon-wrapper.blue-box {
+  background-color: #f0f9ff;
+  color: var(--fmc-primary);
+}
+
+.admin-stat-icon-wrapper svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+}
+
+.admin-stat-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-stat-top-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--fmc-primary);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.admin-stat-number {
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--fmc-text-main);
+  letter-spacing: -0.5px;
+}
+
+.admin-stat-bottom-sub {
+  font-size: 0.74rem;
+  color: var(--fmc-text-sub);
+  margin-top: 1px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   3. ISSUE MANAGEMENT TABLE CARD
+   ───────────────────────────────────────────────────────────── */
+.admin-table-card {
+  background-color: var(--fmc-card-bg);
+  border: 1px solid var(--fmc-border);
+  border-radius: var(--fmc-radius-card);
+  padding: 1.75rem 2rem;
+  box-shadow: var(--fmc-shadow-sm);
+}
+
+.admin-table-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-table-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--fmc-text-main);
+  letter-spacing: -0.4px;
+  margin-bottom: 0.2rem;
+}
+
+.admin-table-subtitle {
+  font-size: 0.88rem;
+  color: var(--fmc-text-muted);
+}
+
+.admin-table-search-box {
+  background-color: #ffffff;
+  border: 1.5px solid var(--fmc-border);
+  border-radius: 12px;
+  padding: 0.55rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 260px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-table-search-box:focus-within {
+  border-color: var(--fmc-primary);
+  box-shadow: 0 0 0 3px rgba(20, 70, 52, 0.1);
+}
+
+.admin-search-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.88rem;
+  color: var(--fmc-text-main);
+}
+
+.admin-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.search-icon {
+  width: 17px;
+  height: 17px;
+  color: var(--fmc-primary);
+  flex-shrink: 0;
+}
+
+/* Table Container & Table */
+.admin-table-responsive-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.admin-issues-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-issues-table th {
+  padding: 0.75rem 1rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--fmc-primary);
+  text-transform: uppercase;
+  border-bottom: 1.5px solid var(--fmc-border);
+}
+
+.admin-issues-table td {
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid var(--fmc-border-light);
+  vertical-align: middle;
+}
+
+.admin-issues-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-issues-table tr:hover td {
+  background-color: #fafcfb;
+}
+
+/* Table Cells Content */
+.td-issue-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.td-issue-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--fmc-text-main);
+  line-height: 1.35;
+}
+
+.td-issue-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--fmc-text-sub);
+}
+
+.td-loc-pin {
+  width: 14px;
+  height: 14px;
+  stroke: var(--fmc-primary);
+}
+
+/* Category Badges */
+.admin-cat-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.85rem;
+  border-radius: var(--fmc-radius-pill);
+  display: inline-flex;
+  align-items: center;
+}
+
+.admin-cat-electrical {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.admin-cat-water {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.admin-cat-internet {
+  background-color: #ede9fe;
+  color: #6d28d9;
+}
+
+.admin-cat-cleanliness {
+  background-color: #f3e8ff;
+  color: #7e22ce;
+}
+
+.admin-cat-furniture {
+  background-color: #ffedd5;
+  color: #c2410c;
+}
+
+.admin-cat-other {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+/* Support Column */
+.td-support-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--fmc-primary);
+}
+
+.td-support-arrow {
+  width: 15px;
+  height: 15px;
+  stroke: var(--fmc-primary);
+}
+
+/* Interactive Status Dropdown Pill */
+.status-select-pill-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-select-pill {
+  appearance: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.35rem 1.8rem 0.35rem 0.85rem;
+  border-radius: var(--fmc-radius-pill);
+  border: 1px solid transparent;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.status-select-pill:focus {
+  border-color: var(--fmc-primary);
+  box-shadow: 0 0 0 3px rgba(20, 70, 52, 0.1);
+}
+
+.status-pill-resolved {
+  background-color: #dcfce7;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.status-pill-progress {
+  background-color: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.status-pill-open {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.status-pill-chevron {
+  position: absolute;
+  right: 0.65rem;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  stroke: currentColor;
+}
+
+/* Trash / Action Button (Green Theme) */
+.btn-trash-action {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--fmc-border);
+  background-color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fmc-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-trash-action:hover {
+  border-color: var(--fmc-primary);
+  background-color: var(--fmc-primary-light);
+  color: var(--fmc-primary);
+}
+
+.trash-icon {
+  width: 17px;
+  height: 17px;
+  stroke: var(--fmc-primary);
+}
+
+/* Empty Table State */
+.admin-empty-table-state {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  color: var(--fmc-text-sub);
+}
+
+.admin-empty-table-state h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--fmc-text-main);
+  margin-bottom: 0.25rem;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   4. DELETE CONFIRMATION MODAL (GREEN THEME)
+   ───────────────────────────────────────────────────────────── */
+.delete-modal-card {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 24px;
+  padding: 2rem;
+  position: relative;
+  box-shadow: var(--fmc-shadow-lg);
+  animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+}
+
+.delete-modal-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: var(--fmc-primary-light);
+  color: var(--fmc-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+  border: 1px solid #bbf7d0;
+}
+
+.delete-modal-icon-circle svg {
+  width: 26px;
+  height: 26px;
+  stroke: var(--fmc-primary);
+}
+
+.delete-modal-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--fmc-text-main);
+  margin-bottom: 0.5rem;
+}
+
+.delete-modal-text {
+  font-size: 0.88rem;
+  color: var(--fmc-text-sub);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.delete-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+}
+
+.btn-modal-cancel {
+  padding: 0.75rem 1.4rem;
+  border-radius: var(--fmc-radius-input);
+  border: 1.5px solid var(--fmc-border);
+  background-color: #ffffff;
+  color: var(--fmc-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-modal-cancel:hover {
+  background-color: var(--fmc-primary-light);
+  border-color: var(--fmc-primary);
+}
+
+.btn-modal-submit-green {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--fmc-radius-input);
+  border: none;
+  background-color: var(--fmc-primary);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 12px rgba(20, 70, 52, 0.2);
+}
+
+.btn-modal-submit-green:hover:not(:disabled) {
+  background-color: var(--fmc-primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-modal-submit-green:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   5. RESPONSIVE RULES
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 1080px) {
+  .admin-stats-4grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-stats-4grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-table-card {
+    padding: 1.25rem 1rem;
+  }
+  .admin-main-title {
+    font-size: 2rem;
+  }
+  .admin-user-details {
+    display: none;
+  }
+}
