@@ -2,8 +2,8 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LoginPage from '../views/pages/LoginPage';
 import RegisterPage from '../views/pages/RegisterPage';
+import StudentHomePage from '../views/student/StudentHomePage';
 import {
-  StudentDashboardPage,
   AdminDashboardPage,
   NotFoundPage,
 } from '../views/pages/PlaceholderPages';
@@ -27,7 +27,15 @@ const router = createBrowserRouter([
   },
   {
     path: '/student/dashboard',
-    element: <StudentDashboardPage />,
+    element: <StudentHomePage />,
+  },
+  {
+    path: '/student/explore',
+    element: <StudentHomePage />,
+  },
+  {
+    path: '/student/my-reports',
+    element: <StudentHomePage />,
   },
   {
     path: '/admin/dashboard',
