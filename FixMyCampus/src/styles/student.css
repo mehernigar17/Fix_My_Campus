@@ -1002,6 +1002,96 @@
   color: #ef4444;
 }
 
+/* Shown when the submitted report already exists on the board — the student
+   is nudged to support the existing report instead of filing a copy. */
+.modal-error-banner {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: var(--fmc-radius-input);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.duplicate-notice {
+  background-color: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-left: 4px solid #f59e0b;
+  border-radius: var(--fmc-radius-input);
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.duplicate-notice-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  color: #b45309;
+}
+
+.duplicate-notice-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.duplicate-notice-meta {
+  font-size: 0.76rem;
+  color: #64748b;
+}
+
+.duplicate-notice-text {
+  font-size: 0.8rem;
+  color: #475569;
+  margin-bottom: 0.35rem;
+}
+
+.duplicate-notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn-duplicate-primary,
+.btn-duplicate-ghost {
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--fmc-radius-input);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-duplicate-primary {
+  border: none;
+  background-color: var(--fmc-primary);
+  color: #ffffff;
+}
+
+.btn-duplicate-primary:hover:not(:disabled) {
+  background-color: var(--fmc-primary-hover);
+}
+
+.btn-duplicate-ghost {
+  border: 1.5px solid var(--fmc-border);
+  background-color: #ffffff;
+  color: var(--fmc-primary);
+}
+
+.btn-duplicate-ghost:hover:not(:disabled) {
+  background-color: var(--fmc-primary-light);
+  border-color: var(--fmc-primary);
+}
+
+.btn-duplicate-primary:disabled,
+.btn-duplicate-ghost:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .modal-fields-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -14,10 +14,12 @@ import {
 import {
   fetchIssues,
   fetchMyIssues,
+  fetchIssue,
   createIssue,
   toggleUpvote,
   addComment,
   fetchStats,
+  duplicateReportFrom,
 } from '../../services/issueService';
 import { getCurrentUser } from '../../services/authService';
 import { apiErrorMessage } from '../../services/apiClient';
@@ -72,9 +74,15 @@ export const useStudentIssuesController = () => {
   // Modal Dialogs State
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedIssueId, setSelectedIssueId] = useState(null);
+  // An issue fetched on demand (the duplicate the API pointed us at) — kept
+  // apart from the paged list so it can open even outside the current filters.
+  const [previewIssue, setPreviewIssue] = useState(null);
   const [newIssueData, setNewIssueData] = useState(createNewIssueState());
   const [formErrors, setFormErrors] = useState({});
+  // The already-reported issue behind a rejected submission, if any
+  const [duplicateIssue, setDuplicateIssue] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpvotingDuplicate, setIsUpvotingDuplicate] = useState(false);
   const [isPostingComment, setIsPostingComment] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -123,10 +131,11 @@ export const useStudentIssuesController = () => {
     (async () => loadStats())();
   }, [loadStats]);
 
-  // The detail modal always renders the live copy held in the list
+  // The detail modal renders the live copy held in the list, or the issue
+  // fetched on demand (an existing report the duplicate check pointed to).
   const selectedIssue = useMemo(
-    () => issues.find((issue) => issue.id === selectedIssueId) || null,
-    [issues, selectedIssueId]
+    () => previewIssue || issues.find((issue) => issue.id === selectedIssueId) || null,
+    [issues, selectedIssueId, previewIssue]
   );
 
   const patchIssue = useCallback((issueId, patch) => {
@@ -184,6 +193,7 @@ export const useStudentIssuesController = () => {
   const handleOpenReportModal = useCallback(() => {
     setNewIssueData(createNewIssueState());
     setFormErrors({});
+    setDuplicateIssue(null);
     setSuccessMessage('');
     setIsReportModalOpen(true);
   }, []);
@@ -191,20 +201,26 @@ export const useStudentIssuesController = () => {
   const handleCloseReportModal = useCallback(() => {
     setIsReportModalOpen(false);
     setFormErrors({});
+    setDuplicateIssue(null);
   }, []);
 
   const handleViewDetails = useCallback((issue) => {
+    setPreviewIssue(null);
     setSelectedIssueId(issue.id);
   }, []);
 
   const handleCloseDetailModal = useCallback(() => {
     setSelectedIssueId(null);
+    setPreviewIssue(null);
   }, []);
 
+  // Editing the report fields clears the "already reported" notice, since the
+  // duplicate check will run again against the new wording.
   const handleNewIssueInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setNewIssueData((prev) => ({ ...prev, [name]: value }));
     setFormErrors((prev) => ({ ...prev, [name]: '' }));
+    setDuplicateIssue(null);
   }, []);
 
   const handlePhotoSelect = useCallback((e) => {
@@ -238,6 +254,7 @@ export const useStudentIssuesController = () => {
     async (e) => {
       e.preventDefault();
       setFormErrors({});
+      setDuplicateIssue(null);
       setSuccessMessage('');
 
       const { isValid, errors } = validateIssueForm(newIssueData);
@@ -258,15 +275,67 @@ export const useStudentIssuesController = () => {
         setSuccessMessage('Your report was submitted. Thanks for flagging it!');
         loadStats();
       } catch (err) {
-        setFormErrors({
-          submit: apiErrorMessage(err, 'Failed to create report. Please try again.'),
-        });
+        // The same problem is already on the board: show the existing report
+        // and let the student support it instead of filing a copy.
+        const duplicate = duplicateReportFrom(err);
+        if (duplicate) {
+          setDuplicateIssue(duplicate);
+        } else {
+          setFormErrors({
+            submit: apiErrorMessage(err, 'Failed to create report. Please try again.'),
+          });
+        }
       } finally {
         setIsSubmitting(false);
       }
     },
     [newIssueData, loadStats]
   );
+
+  // "Upvote the existing report instead" — support the report that already
+  // exists, then close the form.
+  const handleUpvoteDuplicate = useCallback(async () => {
+    if (!duplicateIssue) return;
+    setIsUpvotingDuplicate(true);
+    try {
+      if (!duplicateIssue.upvotedByUser) {
+        await toggleUpvote(duplicateIssue.id);
+      }
+      setIsReportModalOpen(false);
+      setFormErrors({});
+      setDuplicateIssue(null);
+      setSuccessMessage(
+        duplicateIssue.upvotedByUser
+          ? 'That problem was already reported — opening the existing report.'
+          : 'Thanks! Your upvote was added to the existing report.'
+      );
+      loadStats();
+    } catch (err) {
+      setFormErrors({ submit: apiErrorMessage(err, 'Could not upvote the existing report.') });
+    } finally {
+      setIsUpvotingDuplicate(false);
+    }
+  }, [duplicateIssue, loadStats]);
+
+  // Open the existing report, fetching it when the current filters hide it.
+  const handleViewDuplicate = useCallback(async () => {
+    if (!duplicateIssue) return;
+    try {
+      const known = issues.find((issue) => issue.id === duplicateIssue.id);
+      const issue = known || (await fetchIssue(duplicateIssue.id));
+      setPreviewIssue(issue);
+      setIsReportModalOpen(false);
+      setFormErrors({});
+      setDuplicateIssue(null);
+    } catch (err) {
+      setFormErrors({ submit: apiErrorMessage(err, 'Could not open the existing report.') });
+    }
+  }, [duplicateIssue, issues]);
+
+  // "Report something different" — drop the notice, keep the form.
+  const handleDismissDuplicate = useCallback(() => {
+    setDuplicateIssue(null);
+  }, []);
 
   // Post a comment on the open issue and refresh it from the server response
   const handleAddComment = useCallback(
@@ -313,9 +382,11 @@ export const useStudentIssuesController = () => {
     selectedIssue,
     newIssueData,
     formErrors,
+    duplicateIssue,
     isSubmitting,
+    isUpvotingDuplicate,
     isPostingComment,
-successMessage,
+    successMessage,
     clearSuccessMessage,
     handleOpenReportModal,
     handleCloseReportModal,
@@ -325,6 +396,9 @@ successMessage,
     handlePhotoSelect,
     handleRemovePhoto,
     handleCreateIssueSubmit,
+    handleUpvoteDuplicate,
+    handleViewDuplicate,
+    handleDismissDuplicate,
     handleAddComment,
     loadIssues,
   };

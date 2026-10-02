@@ -6,13 +6,18 @@ export default function ReportIssueModal({
   onClose,
   formData,
   errors,
+  duplicateIssue,
   isSubmitting,
+  isUpvotingDuplicate,
   categories,
   locations,
   onInputChange,
   onPhotoSelect,
   onRemovePhoto,
   onSubmit,
+  onUpvoteDuplicate,
+  onViewDuplicate,
+  onDismissDuplicate,
 }) {
   const fileInputRef = useRef(null);
 
@@ -49,6 +54,50 @@ export default function ReportIssueModal({
 
         {/* Modal Form */}
         <form onSubmit={onSubmit} className="report-modal-form" noValidate>
+          {/* Already on the board — support the existing report instead */}
+          {duplicateIssue && (
+            <div className="duplicate-notice" role="alert">
+              <p className="duplicate-notice-eyebrow">ALREADY REPORTED</p>
+              <p className="duplicate-notice-title">{duplicateIssue.title}</p>
+              <p className="duplicate-notice-meta">
+                {duplicateIssue.location} · {duplicateIssue.status} · {duplicateIssue.upvotes}{' '}
+                upvote{duplicateIssue.upvotes === 1 ? '' : 's'}
+              </p>
+              <p className="duplicate-notice-text">
+                This problem is already being tracked, so a second report would not get it fixed any
+                faster.
+              </p>
+              <div className="duplicate-notice-actions">
+                <button
+                  type="button"
+                  className="btn-duplicate-primary"
+                  onClick={onUpvoteDuplicate}
+                  disabled={isUpvotingDuplicate}
+                >
+                  {duplicateIssue.upvotedByUser
+                    ? 'Open the existing report'
+                    : 'Upvote the existing report'}
+                </button>
+                <button
+                  type="button"
+                  className="btn-duplicate-ghost"
+                  onClick={onViewDuplicate}
+                  disabled={isUpvotingDuplicate}
+                >
+                  View it
+                </button>
+                <button
+                  type="button"
+                  className="btn-duplicate-ghost"
+                  onClick={onDismissDuplicate}
+                  disabled={isUpvotingDuplicate}
+                >
+                  Report something different
+                </button>
+              </div>
+            </div>
+          )}
+
           {errors.submit && (
             <div className="modal-error-banner">{errors.submit}</div>
           )}

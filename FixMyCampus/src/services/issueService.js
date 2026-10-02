@@ -125,6 +125,8 @@ export const fetchIssue = async (issueId) => {
 /**
  * Create an issue (POST /issues, multipart/form-data so the optional photo
  * uploads as a real binary part rather than a JSON string).
+ * Throws an axios error; a duplicate report comes back as 409 and is read
+ * back with `duplicateReportFrom` below.
  */
 export const createIssue = async (issueData) => {
   const form = new FormData();
@@ -139,6 +141,18 @@ export const createIssue = async (issueData) => {
 
   const { data } = await api.post('/issues', form);
   return { message: data.message, issue: toUiIssue(data.issue) };
+};
+
+/**
+ * Read the already-reported issue out of a rejected create/update call.
+ * The API answers 409 with `{ code: 'DUPLICATE_ISSUE', duplicateOf }`, so the
+ * UI can offer "upvote the existing report" instead of a dead-end error.
+ * Returns null for every other failure.
+ */
+export const duplicateReportFrom = (err) => {
+  const data = err?.response?.data;
+  if (err?.response?.status !== 409 || data?.code !== 'DUPLICATE_ISSUE') return null;
+  return toUiIssue(data.duplicateOf);
 };
 
 /**

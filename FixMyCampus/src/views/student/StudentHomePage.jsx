@@ -31,7 +31,9 @@ export default function StudentHomePage() {
     selectedIssue,
     newIssueData,
     formErrors,
+    duplicateIssue,
     isSubmitting,
+    isUpvotingDuplicate,
     isPostingComment,
     successMessage,
     clearSuccessMessage,
@@ -43,6 +45,9 @@ export default function StudentHomePage() {
     handlePhotoSelect,
     handleRemovePhoto,
     handleCreateIssueSubmit,
+    handleUpvoteDuplicate,
+    handleViewDuplicate,
+    handleDismissDuplicate,
     handleAddComment,
   } = useStudentIssuesController();
 
@@ -129,13 +134,18 @@ export default function StudentHomePage() {
         onClose={handleCloseReportModal}
         formData={newIssueData}
         errors={formErrors}
+        duplicateIssue={duplicateIssue}
         isSubmitting={isSubmitting}
+        isUpvotingDuplicate={isUpvotingDuplicate}
         categories={categories}
         locations={locations}
         onInputChange={handleNewIssueInputChange}
         onPhotoSelect={handlePhotoSelect}
         onRemovePhoto={handleRemovePhoto}
         onSubmit={handleCreateIssueSubmit}
+        onUpvoteDuplicate={handleUpvoteDuplicate}
+        onViewDuplicate={handleViewDuplicate}
+        onDismissDuplicate={handleDismissDuplicate}
       />
 
       {/* Issue Detail & Discussion Modal */}
