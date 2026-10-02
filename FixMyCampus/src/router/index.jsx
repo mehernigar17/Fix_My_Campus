@@ -3,8 +3,8 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LoginPage from '../views/pages/LoginPage';
 import RegisterPage from '../views/pages/RegisterPage';
 import StudentHomePage from '../views/student/StudentHomePage';
+import AdminHomePage from '../views/admin/AdminHomePage';
 import {
-  AdminDashboardPage,
   NotFoundPage,
 } from '../views/pages/PlaceholderPages';
 import { RequireAuth, RedirectIfAuthenticated } from './guards';

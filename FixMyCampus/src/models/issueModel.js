@@ -5,9 +5,10 @@
 export const API_CATEGORIES = [
   'Water',
   'Electrical',
+  'Water',
+  'Internet',
   'Cleanliness',
   'Furniture',
-  'Internet',
   'Other',
 ];
 
