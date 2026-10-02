@@ -25,6 +25,11 @@ export default function IssueDetailModal({
   const comments = issue.comments || [];
   const statusColor = STATUS_DOT_COLORS[issue.status?.toLowerCase()] || '#64748b';
 
+  // Until staff approve the report it is private, so there is nothing for the
+  // campus to upvote or discuss yet.
+  const moderation = issue.moderation || { state: 'approved', label: 'Approved', note: '' };
+  const isPublished = moderation.state === 'approved';
+
   const handleAddComment = async (e) => {
     e.preventDefault();
     if (!commentText.trim() || isPosting) return;
@@ -78,6 +83,23 @@ export default function IssueDetailModal({
           </svg>
           <span>{issue.createdAt || 'Created Yesterday'}</span>
         </div>
+
+        {/* Review state — a report is off the campus board until staff approve it */}
+        {!isPublished && (
+          <div className={`detail-moderation-banner detail-moderation-${moderation.state}`} role="status">
+            <span className="detail-moderation-title">
+              {moderation.state === 'rejected'
+                ? 'Not published — staff turned this down'
+                : 'Waiting for staff approval'}
+            </span>
+            <p className="detail-moderation-text">
+              {moderation.state === 'rejected'
+                ? moderation.note ||
+                  'Campus staff declined this report. You can edit it and send it back for review.'
+                : 'Campus staff are checking this report. It appears on the campus board once they approve it — only you can see it for now.'}
+            </p>
+          </div>
+        )}
 
         {/* ── 3. Issue Information Card ── */}
         <div className="detail-card-panel">
@@ -133,6 +155,8 @@ export default function IssueDetailModal({
               className={`btn-upvote-outline ${issue.upvotedByUser ? 'active-upvoted' : ''}`}
               onClick={() => onUpvote?.(issue.id)}
               aria-pressed={!!issue.upvotedByUser}
+              disabled={!isPublished}
+              title={isPublished ? 'Upvote this report' : 'Available once staff approve this report'}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="upvote-thumb-icon">
                 <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
@@ -165,7 +189,8 @@ export default function IssueDetailModal({
             className={`action-btn-pill ${issue.upvotedByUser ? 'active-voted' : ''}`}
             onClick={() => onUpvote?.(issue.id)}
             aria-pressed={!!issue.upvotedByUser}
-            title="Upvote issue"
+            title={isPublished ? 'Upvote issue' : 'Available once staff approve this report'}
+            disabled={!isPublished}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="footer-action-icon">
               <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
@@ -225,23 +250,29 @@ export default function IssueDetailModal({
           </div>
 
           {/* Add Comment Input Form */}
-          <form onSubmit={handleAddComment} className="add-comment-interactive-row">
-            <div className="my-comment-avatar">AM</div>
-            <div className="add-comment-input-wrap">
-              <input
-                type="text"
-                className="add-comment-field"
-                placeholder="Add an update or useful detail..."
-                value={commentText}
-                maxLength={1000}
-                disabled={isPosting}
-                onChange={(e) => setCommentText(e.target.value)}
-              />
-              <button type="submit" className="comment-submit-btn" disabled={isPosting}>
-                {isPosting ? 'Posting…' : 'Post'}
-              </button>
-            </div>
-          </form>
+          {isPublished ? (
+            <form onSubmit={handleAddComment} className="add-comment-interactive-row">
+              <div className="my-comment-avatar">AM</div>
+              <div className="add-comment-input-wrap">
+                <input
+                  type="text"
+                  className="add-comment-field"
+                  placeholder="Add an update or useful detail..."
+                  value={commentText}
+                  maxLength={1000}
+                  disabled={isPosting}
+                  onChange={(e) => setCommentText(e.target.value)}
+                />
+                <button type="submit" className="comment-submit-btn" disabled={isPosting}>
+                  {isPosting ? 'Posting…' : 'Post'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <p className="comments-empty-note">
+              Discussion opens up once campus staff approve this report.
+            </p>
+          )}
           {commentError && <span className="modal-field-err">{commentError}</span>}
 
           <p className="comment-guideline-note">

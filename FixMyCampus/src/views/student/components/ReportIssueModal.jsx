@@ -50,6 +50,10 @@ export default function ReportIssueModal({
           <p className="report-modal-eyebrow">NEW REPORT</p>
           <h2 id="report-modal-heading" className="report-modal-title">What needs fixing?</h2>
           <p className="report-modal-subtitle">Give campus staff enough detail to act quickly.</p>
+          <p className="report-modal-review-note">
+            Campus staff review every report before it appears on the campus board. You can track
+            yours under “My reports”.
+          </p>
         </div>
 
         {/* Modal Form */}

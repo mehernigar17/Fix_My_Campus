@@ -162,9 +162,14 @@ export const useStudentIssuesController = () => {
     setFilters((prev) => ({ ...prev, location }));
   }, []);
 
-  // Upvoting Logic — optimistic, then reconciled with the server's count
+  // Upvoting Logic — optimistic, then reconciled with the server's count.
+  // A report that has not been approved is not on the board, so nobody can
+  // support it yet (the reporter still sees it under "My reports").
   const handleUpvote = useCallback(
     async (issueId) => {
+      const target = issues.find((issue) => issue.id === issueId);
+      if (target && target.isPublished === false) return;
+
       setIssues((prev) =>
         prev.map((issue) => {
           if (issue.id !== issueId) return issue;
@@ -186,7 +191,7 @@ export const useStudentIssuesController = () => {
         loadIssues();
       }
     },
-    [loadIssues, patchIssue]
+    [issues, loadIssues, patchIssue]
   );
 
   // Modal Triggers
@@ -267,12 +272,22 @@ export const useStudentIssuesController = () => {
       try {
         const { issue } = await createIssue(newIssueData);
 
-        setIssues((prev) => [issue, ...prev.filter((item) => item.id !== issue.id)]);
-        setTotalCount((prev) => prev + 1);
+        // A fresh report is `pending`: it only belongs in the list when the
+        // user is looking at their own reports, or when an admin publishes it
+        // straight away. Adding it to the campus board here would show it
+        // before staff have approved it.
+        if (isMyReportsView || issue.isPublished) {
+          setIssues((prev) => [issue, ...prev.filter((item) => item.id !== issue.id)]);
+          setTotalCount((prev) => prev + 1);
+        }
 
         setIsReportModalOpen(false);
         setNewIssueData(createNewIssueState());
-        setSuccessMessage('Your report was submitted. Thanks for flagging it!');
+        setSuccessMessage(
+          issue.isPublished
+            ? 'Your report was submitted and is now on the campus board.'
+            : 'Your report was sent to campus staff. It goes on the board once they approve it — you can track it under “My reports”.'
+        );
         loadStats();
       } catch (err) {
         // The same problem is already on the board: show the existing report
@@ -289,7 +304,7 @@ export const useStudentIssuesController = () => {
         setIsSubmitting(false);
       }
     },
-    [newIssueData, loadStats]
+    [newIssueData, isMyReportsView, loadStats]
   );
 
   // "Upvote the existing report instead" — support the report that already

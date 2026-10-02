@@ -216,10 +216,10 @@
   box-shadow: 0 0 0 2px #bbf7d0;
 }
 
-/* 4 Stat Cards Grid */
-.admin-stats-4grid {
+/* Stat Cards Grid — auto-fits so the grid works with 4 or 5 cards */
+.admin-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 1.25rem;
   margin-bottom: 2.5rem;
 }
@@ -691,13 +691,13 @@
    5. RESPONSIVE RULES
    ───────────────────────────────────────────────────────────── */
 @media (max-width: 1080px) {
-  .admin-stats-4grid {
+  .admin-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 640px) {
-  .admin-stats-4grid {
+  .admin-stats-grid {
     grid-template-columns: 1fr;
   }
   .admin-table-card {
@@ -709,4 +709,325 @@
   .admin-user-details {
     display: none;
   }
+}
+
+/* ????????????????????????????????????????????????????????????????
+   ADMIN TOOLBAR, FEEDBACK BANNER & RESOLVE-NOTE DIALOG
+   ???????????????????????????????????????????????????????????????? */
+
+/* Filter row under the table header: status pills + category + result count */
+.admin-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+}
+
+.admin-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.admin-filter-pill {
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--fmc-border);
+  background-color: #ffffff;
+  color: var(--fmc-text-sub);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-filter-pill:hover {
+  border-color: var(--fmc-primary);
+  color: var(--fmc-primary);
+}
+
+.admin-filter-pill.active {
+  background-color: var(--fmc-primary);
+  border-color: var(--fmc-primary);
+  color: #ffffff;
+}
+
+.admin-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.admin-category-select {
+  border: 1.5px solid var(--fmc-border);
+  border-radius: var(--fmc-radius-input);
+  background-color: #ffffff;
+  color: var(--fmc-text-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.admin-category-select:focus {
+  border-color: var(--fmc-primary);
+  box-shadow: 0 0 0 3px rgba(20, 70, 52, 0.12);
+}
+
+.admin-clear-filters-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--fmc-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.admin-table-count {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--fmc-text-sub);
+  white-space: nowrap;
+}
+
+/* Reporter + resolution note shown under an issue in the table */
+.td-issue-reporter {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.td-issue-note {
+  display: inline-block;
+  margin-top: 0.2rem;
+  max-width: 100%;
+  font-size: 0.72rem;
+  color: #0f766e;
+  background-color: #ccfbf1;
+  border-radius: 6px;
+  padding: 0.1rem 0.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-error-state {
+  color: #b91c1c;
+}
+
+.btn-trash-action:disabled,
+.status-select-pill:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Success / error banner after a status change or deletion */
+.admin-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.admin-toast-success {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.admin-toast-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.admin-toast-close {
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.admin-toast-close:hover {
+  opacity: 1;
+}
+
+/* Resolution-note dialog (reuses the delete dialog shell) */
+.resolve-modal-icon-circle {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.resolve-modal-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 1rem 0 1.25rem;
+  border: 1.5px solid var(--fmc-border);
+  border-radius: var(--fmc-radius-input);
+  padding: 0.7rem 0.85rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: var(--fmc-text-main);
+  resize: vertical;
+  outline: none;
+}
+
+.resolve-modal-textarea:focus {
+  border-color: var(--fmc-primary);
+  box-shadow: 0 0 0 3px rgba(20, 70, 52, 0.12);
+}
+
+/* -------------------------------------------------------------
+   ADMIN REVIEW QUEUE — approve before a report reaches the board
+   ------------------------------------------------------------- */
+.admin-table-toolbar-secondary {
+  padding-top: 0;
+  margin-top: -0.35rem;
+}
+
+.moderation-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.moderation-filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background-color: #f59e0b;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.admin-filter-pill.active .moderation-filter-count {
+  background-color: rgba(255, 255, 255, 0.28);
+}
+
+/* Rows awaiting a decision read differently from published reports */
+.admin-row-pending {
+  background-color: #fffdf5;
+}
+
+.admin-row-pending:hover {
+  background-color: #fffbeb;
+}
+
+.moderation-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.moderation-pill {
+  display: inline-block;
+  padding: 0.28rem 0.65rem;
+  border-radius: var(--fmc-radius-pill);
+  border: 1px solid transparent;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.moderation-pill-pending {
+  background-color: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.moderation-pill-approved {
+  background-color: #dcfce7;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.moderation-pill-rejected {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.moderation-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.btn-review-approve,
+.btn-review-reject {
+  padding: 0.32rem 0.7rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--fmc-border);
+  background-color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-review-approve {
+  color: var(--fmc-primary);
+  border-color: #bbf7d0;
+}
+
+.btn-review-approve:hover:not(:disabled) {
+  background-color: var(--fmc-primary);
+  border-color: var(--fmc-primary);
+  color: #ffffff;
+}
+
+.btn-review-reject {
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.btn-review-reject:hover:not(:disabled) {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+  color: #ffffff;
+}
+
+.btn-review-approve:disabled,
+.btn-review-reject:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Reject button inside the review dialog */
+.btn-modal-submit-reject {
+  background-color: #b91c1c;
+}
+
+.btn-modal-submit-reject:hover:not(:disabled) {
+  background-color: #991b1b;
+}
+
+.review-reject-icon-circle {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+/* Violet tone for the "awaiting review" stat card */
+.admin-stat-icon-wrapper.violet-box {
+  background-color: #f5f3ff;
+  color: #7c3aed;
 }

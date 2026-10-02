@@ -20,9 +20,24 @@ export default function AdminHeroStats({ stats, adminName }) {
         </div>
       </div>
 
-      {/* 4 Stat Cards Grid */}
-      <div className="admin-stats-4grid">
-        {/* Card 1: Open Issues */}
+      {/* Stat Cards Grid */}
+      <div className="admin-stats-grid">
+        {/* Card 1: Reports waiting for a review decision */}
+        <div className="admin-stat-card">
+          <div className="admin-stat-icon-wrapper violet-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </div>
+          <div className="admin-stat-text-group">
+            <span className="admin-stat-top-label">AWAITING REVIEW</span>
+            <span className="admin-stat-number">{stats?.pendingCount ?? 0}</span>
+            <span className="admin-stat-bottom-sub">Not on the board yet</span>
+          </div>
+        </div>
+
+        {/* Card 2: Open Issues */}
         <div className="admin-stat-card">
           <div className="admin-stat-icon-wrapper rose-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -34,12 +49,12 @@ export default function AdminHeroStats({ stats, adminName }) {
           </div>
           <div className="admin-stat-text-group">
             <span className="admin-stat-top-label">OPEN ISSUES</span>
-            <span className="admin-stat-number">{stats?.openCount ?? 2}</span>
+            <span className="admin-stat-number">{stats?.openCount ?? 0}</span>
             <span className="admin-stat-bottom-sub">Needs review</span>
           </div>
         </div>
 
-        {/* Card 2: In Progress */}
+        {/* Card 3: In Progress */}
         <div className="admin-stat-card">
           <div className="admin-stat-icon-wrapper amber-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -49,12 +64,12 @@ export default function AdminHeroStats({ stats, adminName }) {
           </div>
           <div className="admin-stat-text-group">
             <span className="admin-stat-top-label">IN PROGRESS</span>
-            <span className="admin-stat-number">{stats?.inProgressCount ?? 1}</span>
+            <span className="admin-stat-number">{stats?.inProgressCount ?? 0}</span>
             <span className="admin-stat-bottom-sub">Being handled</span>
           </div>
         </div>
 
-        {/* Card 3: Resolved */}
+        {/* Card 4: Resolved */}
         <div className="admin-stat-card">
           <div className="admin-stat-icon-wrapper mint-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -63,12 +78,12 @@ export default function AdminHeroStats({ stats, adminName }) {
           </div>
           <div className="admin-stat-text-group">
             <span className="admin-stat-top-label">RESOLVED</span>
-            <span className="admin-stat-number">{stats?.resolvedCount ?? 1}</span>
+            <span className="admin-stat-number">{stats?.resolvedCount ?? 0}</span>
             <span className="admin-stat-bottom-sub">This period</span>
           </div>
         </div>
 
-        {/* Card 4: Total Upvotes */}
+        {/* Card 5: Total Upvotes */}
         <div className="admin-stat-card">
           <div className="admin-stat-icon-wrapper blue-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -78,7 +93,7 @@ export default function AdminHeroStats({ stats, adminName }) {
           </div>
           <div className="admin-stat-text-group">
             <span className="admin-stat-top-label">TOTAL UPVOTES</span>
-            <span className="admin-stat-number">{stats?.totalUpvotes ?? 330}</span>
+            <span className="admin-stat-number">{stats?.totalUpvotes ?? 0}</span>
             <span className="admin-stat-bottom-sub">Community signals</span>
           </div>
         </div>

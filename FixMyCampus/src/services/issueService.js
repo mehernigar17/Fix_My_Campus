@@ -8,6 +8,8 @@ import {
   ALL_STATUS,
   STATUS_LABEL_TO_API,
   API_TO_STATUS_LABEL,
+  API_TO_MODERATION_LABEL,
+  MODERATION_LABEL_TO_API,
   derivePriority,
   formatRelativeTime,
   initialsFromName,
@@ -21,6 +23,9 @@ const toUiIssue = (raw) => {
 
   const reporterName = raw.reportedBy?.name || 'Campus member';
   const upvoteCount = raw.upvoteCount ?? 0;
+  // Reports filed before the review gate have no moderation field; the API
+  // treats those as published, so mirror that here.
+  const moderationState = raw.moderation?.state || 'approved';
 
   return {
     id: raw._id,
@@ -30,6 +35,15 @@ const toUiIssue = (raw) => {
     location: raw.location || '',
     photo: resolveAssetUrl(raw.photo?.url),
     status: API_TO_STATUS_LABEL[raw.status] || raw.status || 'Open',
+    // Admin review: only an approved report is live on the campus board.
+    moderation: {
+      state: moderationState,
+      label: API_TO_MODERATION_LABEL[moderationState] || 'Approved',
+      note: raw.moderation?.note || '',
+      reviewedAt: raw.moderation?.reviewedAt || null,
+      reviewedByName: raw.moderation?.reviewedBy?.name || '',
+    },
+    isPublished: moderationState === 'approved',
     priority: derivePriority(upvoteCount),
     upvotes: upvoteCount,
     upvotedByUser: !!raw.upvotedByMe,
@@ -92,12 +106,18 @@ const buildQueryParams = (filters = {}, extra = {}) => {
 /**
  * Fetch campus issues with search + filters (GET /issues).
  * @param {Object} filters  UI filter state
- * @param {Object} options  { mine: boolean, sort: 'newest'|'oldest'|'upvotes', limit, page }
+ * @param {Object} options  { mine: boolean, sort: 'newest'|'oldest'|'upvotes', limit, page,
+ *                            moderation: 'All'|'Pending'|'Approved'|'Rejected' }
+ * `moderation` is the admin review filter — the API rejects it for students,
+ * so it is only ever set by the admin screen.
  */
 export const fetchIssues = async (filters = {}, options = {}) => {
-  const { mine = false, sort = 'newest', limit = 50, page = 1 } = options;
+  const { mine = false, sort = 'newest', limit = 50, page = 1, moderation } = options;
   const extra = { sort, limit: String(limit), page: String(page) };
   if (mine) extra.mine = 'true';
+  if (moderation && moderation !== 'All') {
+    extra.moderation = MODERATION_LABEL_TO_API[moderation] || moderation;
+  }
 
   const { data } = await api.get('/issues', { params: buildQueryParams(filters, extra) });
   return toUiList(data);
@@ -197,17 +217,37 @@ export const deleteIssue = async (issueId) => {
  * Change an issue's status (PATCH /issues/:id/status).
  * Accepts either the UI label ("In Progress") or the raw API value
  * ("in_progress") so callers don't have to normalise first.
+ * `resolutionNote` is optional and is only sent when defined, so switching to
+ * "In Progress" never wipes the note staff wrote when resolving.
  */
-export const updateIssueStatus = async (issueId, status) => {
+export const updateIssueStatus = async (issueId, status, resolutionNote) => {
   const apiStatus = STATUS_LABEL_TO_API[status] || status;
-  const { data } = await api.patch(`/issues/${issueId}/status`, { status: apiStatus });
+  const body = { status: apiStatus };
+  if (resolutionNote !== undefined) body.resolutionNote = resolutionNote;
+
+  const { data } = await api.patch(`/issues/${issueId}/status`, body);
+  return { message: data.message, issue: toUiIssue(data.issue) };
+};
+
+/**
+ * Admin review decision (PATCH /issues/:id/moderation).
+ * `decision` is 'approve' (publishes the report to the campus board) or
+ * 'reject' (keeps it off the board; the reporter sees `note`).
+ * `note` is optional and only sent when defined.
+ */
+export const reviewIssue = async (issueId, decision, note) => {
+  const body = { decision };
+  if (note !== undefined) body.note = note;
+
+  const { data } = await api.patch(`/issues/${issueId}/moderation`, body);
   return { message: data.message, issue: toUiIssue(data.issue) };
 };
 
 /**
  * Campus stats for the hero panel (GET /stats).
  * Shaped to what StudentHeroStats renders: resolvedCount, resolvedThisMonth,
- * inProgressCount, avgResolutionTime.
+ * inProgressCount, avgResolutionTime. `pendingCount` is only non-zero for
+ * admins — it is the size of the review queue.
  */
 export const fetchStats = async () => {
   const { data } = await api.get('/stats');
@@ -228,6 +268,7 @@ export const fetchStats = async () => {
     avgResolutionTime,
     byStatus,
     byCategory: data?.byCategory || {},
+    pendingCount: data?.pendingCount ?? 0,
     topUpvoted: (data?.topUpvoted || []).map(toUiIssue),
   };
 };

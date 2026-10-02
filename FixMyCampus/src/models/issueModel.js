@@ -2,10 +2,10 @@
 // Values here mirror the API contract in FixMyCampus_backend:
 //   categories: Electrical | Water | Cleanliness | Furniture | Internet | Other
 //   statuses:   open | in_progress | resolved
+//   moderation: pending | approved | rejected
 export const API_CATEGORIES = [
   'Water',
   'Electrical',
-  'Water',
   'Internet',
   'Cleanliness',
   'Furniture',
@@ -28,6 +28,25 @@ export const API_TO_STATUS_LABEL = {
 };
 
 export const ISSUE_STATUSES = ['All', 'Open', 'In Progress', 'Resolved'];
+
+// ── Moderation: admin review before a report reaches the campus board ──
+// A filed report is `pending` and invisible to everyone but its reporter and
+// admins until it is approved.
+export const MODERATION_LABEL_TO_API = {
+  Pending: 'pending',
+  Approved: 'approved',
+  Rejected: 'rejected',
+  All: 'all',
+};
+
+export const API_TO_MODERATION_LABEL = {
+  pending: 'Pending',
+  approved: 'Approved',
+  rejected: 'Rejected',
+};
+
+// The admin review queue filter. "All" is the API's `moderation=all`.
+export const ADMIN_MODERATION_FILTERS = ['All', 'Pending', 'Approved', 'Rejected'];
 
 // Sentinels used by the filter bar; never forwarded to the API.
 export const ALL_CATEGORY = 'All';

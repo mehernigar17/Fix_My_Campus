@@ -1,5 +1,10 @@
 // View Component: Scalable & Reusable Campus Issue Card
 export default function StudentIssueCard({ issue, onUpvote, onViewDetails }) {
+  // A report only reaches the campus board once an admin approves it, so a
+  // card in the reporter's own list may still be waiting for that decision.
+  const moderation = issue.moderation || { state: 'approved', label: 'Approved' };
+  const isPublished = moderation.state === 'approved';
+
   const getStatusDotColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'open':
@@ -31,7 +36,39 @@ export default function StudentIssueCard({ issue, onUpvote, onViewDetails }) {
   };
 
   return (
-    <article className="campus-issue-card">
+    <article className={`campus-issue-card ${isPublished ? '' : 'issue-card-unpublished'}`}>
+      {/* Review state — only visible to the reporter, until an admin decides */}
+      {!isPublished && (
+        <div className={`issue-card-moderation issue-card-moderation-${moderation.state}`} role="status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="moderation-banner-icon">
+            {moderation.state === 'rejected' ? (
+              <>
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </>
+            ) : (
+              <>
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </>
+            )}
+          </svg>
+          <div className="issue-card-moderation-text">
+            <span className="issue-card-moderation-title">
+              {moderation.state === 'rejected'
+                ? 'Not published — staff turned this down'
+                : 'Waiting for staff approval'}
+            </span>
+            <span className="issue-card-moderation-sub">
+              {moderation.state === 'rejected'
+                ? moderation.note || 'Only you can see this report.'
+                : 'Only you can see this report until it is approved.'}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Top Image & Overlay Badges */}
       <div className="issue-card-image-wrapper">
         <img
@@ -97,13 +134,18 @@ export default function StudentIssueCard({ issue, onUpvote, onViewDetails }) {
       {/* Card Footer Bar */}
       <div className="issue-card-bottom-bar">
         <div className="card-actions-left">
-          {/* Upvote Button */}
+          {/* Upvote Button — a report nobody else can see cannot be supported yet */}
           <button
             type="button"
             className={`action-btn-pill ${issue.upvotedByUser ? 'active-voted' : ''}`}
             onClick={() => onUpvote(issue.id)}
-            title="Upvote issue"
+            title={
+              isPublished
+                ? 'Upvote issue'
+                : 'Available once staff approve this report'
+            }
             aria-label={`Upvote issue, current votes ${issue.upvotes}`}
+            disabled={!isPublished}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="footer-action-icon">
               <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
