@@ -180,6 +180,17 @@ export const deleteIssue = async (issueId) => {
 };
 
 /**
+ * Change an issue's status (PATCH /issues/:id/status).
+ * Accepts either the UI label ("In Progress") or the raw API value
+ * ("in_progress") so callers don't have to normalise first.
+ */
+export const updateIssueStatus = async (issueId, status) => {
+  const apiStatus = STATUS_LABEL_TO_API[status] || status;
+  const { data } = await api.patch(`/issues/${issueId}/status`, { status: apiStatus });
+  return { message: data.message, issue: toUiIssue(data.issue) };
+};
+
+/**
  * Campus stats for the hero panel (GET /stats).
  * Shaped to what StudentHeroStats renders: resolvedCount, resolvedThisMonth,
  * inProgressCount, avgResolutionTime.

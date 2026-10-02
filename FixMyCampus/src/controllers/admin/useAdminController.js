@@ -23,14 +23,8 @@ export const useAdminController = () => {
   const [issueToDelete, setIssueToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Authenticated Admin User
-  const [currentUser, setCurrentUser] = useState({
-    name: 'Arjun Rao',
-    roleTitle: 'Campus administrator',
-    avatar: 'AR',
-  });
-
-  useEffect(() => {
+  // Authenticated Admin User — read once from localStorage, no effect needed
+  const [currentUser] = useState(() => {
     const user = getCurrentUser();
     if (user && user.name) {
       const initials = user.name
@@ -39,13 +33,14 @@ export const useAdminController = () => {
         .join('')
         .toUpperCase()
         .slice(0, 2);
-      setCurrentUser({
+      return {
         name: user.name,
         roleTitle: user.role === 'admin' ? 'Campus administrator' : 'Staff',
         avatar: initials || 'AR',
-      });
+      };
     }
-  }, []);
+    return { name: 'Arjun Rao', roleTitle: 'Campus administrator', avatar: 'AR' };
+  });
 
   const loadIssues = useCallback(async () => {
     setIsLoading(true);
@@ -71,8 +66,8 @@ export const useAdminController = () => {
   }, []);
 
   useEffect(() => {
-    loadIssues();
-    loadStats();
+    (async () => loadIssues())();
+    (async () => loadStats())();
   }, [loadIssues, loadStats]);
 
   const handleSearchChange = useCallback((e) => {
@@ -90,7 +85,7 @@ export const useAdminController = () => {
       try {
         await updateIssueStatus(issueId, newStatus);
         loadStats();
-      } catch (err) {
+      } catch {
         loadIssues();
       }
     },

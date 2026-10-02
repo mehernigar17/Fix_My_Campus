@@ -1,4 +1,4 @@
-// Router: Centralized route definitions for the application
+﻿// Router: Centralized route definitions for the application
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LoginPage from '../views/pages/LoginPage';
 import RegisterPage from '../views/pages/RegisterPage';
@@ -32,7 +32,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/forgot-password',
-    element: <div style={{ padding: '2rem', fontFamily: 'Inter, sans-serif', color: '#1a4a3a' }}>Forgot Password — coming soon</div>,
+    element: <div style={{ padding: '2rem', fontFamily: 'Inter, sans-serif', color: '#1a4a3a' }}>Forgot Password â€” coming soon</div>,
   },
   // Each student route gets its own key so switching between the campus board
   // and "My Reports" resets the page's filters, modals and results.
@@ -64,7 +64,15 @@ const router = createBrowserRouter([
     path: '/admin/dashboard',
     element: (
       <RequireAuth role="admin">
-        <AdminDashboardPage />
+        <AdminHomePage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/admin',
+    element: (
+      <RequireAuth role="admin">
+        <AdminHomePage />
       </RequireAuth>
     ),
   },
