@@ -5,18 +5,38 @@ export default function AdminIssuesTable({
   searchQuery,
   statusFilter,
   categoryFilter,
+  moderationFilter,
   categories,
   statuses,
+  moderationFilters,
+  pendingCount,
   isLoading,
   loadError,
   savingIssueId,
+  reviewingIssueId,
   onSearchChange,
   onStatusFilterChange,
   onCategoryFilterChange,
+  onModerationFilterChange,
   onClearFilters,
   onStatusChange,
+  onReviewClick,
   onDeleteClick,
 }) {
+  // Review state of a report, defaulting to 'approved' for rows filed before
+  // the review gate existed — the API treats those as published.
+  const getModerationState = (issue) => issue.moderation?.state || 'approved';
+  const getModerationLabel = (issue) => issue.moderation?.label || 'Approved';
+  const getModerationPillClass = (state) => {
+    switch (state) {
+      case 'pending':
+        return 'moderation-pill moderation-pill-pending';
+      case 'rejected':
+        return 'moderation-pill moderation-pill-rejected';
+      default:
+        return 'moderation-pill moderation-pill-approved';
+    }
+  };
   const getCategoryClass = (category) => {
     switch (category?.toLowerCase()) {
       case 'electrical':
@@ -51,7 +71,8 @@ export default function AdminIssuesTable({
   const hasFilters =
     searchQuery.trim() !== '' ||
     statusFilter !== 'All' ||
-    categoryFilter !== 'All';
+    categoryFilter !== 'All' ||
+    moderationFilter !== 'All';
 
   return (
     <div className="admin-table-card">
@@ -122,55 +143,89 @@ export default function AdminIssuesTable({
         </div>
       </div>
 
+      {/* Review Queue Toolbar — the gate every student report waits at.
+          Without this the admin cannot narrow the list to reports that still
+          need a decision, so the approve/reject buttons have no targets. */}
+      <div className="admin-table-toolbar admin-table-toolbar-secondary">
+        <div className="admin-filter-pills" role="group" aria-label="Filter by review state">
+          {moderationFilters.map((state) => (
+            <button
+              key={state}
+              type="button"
+              className={`admin-filter-pill moderation-filter-pill ${moderationFilter === state ? 'active' : ''}`}
+              aria-pressed={moderationFilter === state}
+              onClick={() => onModerationFilterChange(state)}
+            >
+              {state === 'All' ? 'All reviews' : state}
+              {state === 'Pending' && pendingCount > 0 && (
+                <span className="moderation-filter-count">{pendingCount}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Issues Table */}
       <div className="admin-table-responsive-wrap">
         <table className="admin-issues-table">
           <thead>
             <tr>
-              <th style={{ width: '44%' }}>ISSUE</th>
-              <th style={{ width: '16%' }}>CATEGORY</th>
-              <th style={{ width: '14%' }}>SUPPORT</th>
-              <th style={{ width: '18%' }}>STATUS</th>
+              <th style={{ width: '34%' }}>ISSUE</th>
+              <th style={{ width: '12%' }}>CATEGORY</th>
+              <th style={{ width: '10%' }}>SUPPORT</th>
+              <th style={{ width: '16%' }}>REVIEW</th>
+              <th style={{ width: '14%' }}>STATUS</th>
               <th style={{ width: '8%', textAlign: 'center' }}>ACTION</th>
             </tr>
           </thead>
           <tbody>
             {loadError ? (
-              <tr>
-                <td colSpan={5}>
-                  <div className="admin-empty-table-state admin-error-state">
-                    <h4>We couldn&apos;t load the reports</h4>
+                <tr>
+                  <td colSpan={6}>
+                    <div className="admin-empty-table-state admin-error-state">
+                      <h4>We couldn&apos;t load the reports</h4>
+
                     <p>{loadError}</p>
                   </div>
                 </td>
               </tr>
             ) : isLoading && issues.length === 0 ? (
-              <tr>
-                <td colSpan={5}>
-                  <div className="admin-empty-table-state">
-                    <p>Loading campus reports…</p>
-                  </div>
+                <tr>
+                  <td colSpan={6}>
+                    <div className="admin-empty-table-state">
+                      <p>Loading campus reports…</p>
+                    </div>
+
                 </td>
               </tr>
             ) : issues.length === 0 ? (
-              <tr>
-                <td colSpan={5}>
-                  <div className="admin-empty-table-state">
-                    <h4>No reports found</h4>
-                    <p>
-                      {hasFilters
-                        ? 'Try a different keyword, status, or category.'
-                        : 'Students have not reported anything yet.'}
-                    </p>
-                  </div>
+                <tr>
+                  <td colSpan={6}>
+                    <div className="admin-empty-table-state">
+                      <h4>No reports found</h4>
+                      <p>
+                        {hasFilters
+                          ? 'Try a different keyword, status, or category.'
+                          : 'Students have not reported anything yet.'}
+                      </p>
+                    </div>
+
                 </td>
               </tr>
             ) : (
               issues.map((issue) => {
                 const isSaving = savingIssueId === issue.id;
+                const moderationState = getModerationState(issue);
+                const isPending = moderationState === 'pending';
+                // Blocks both review buttons for this row while a decision is
+                // being saved, so a double click cannot review twice.
+                const isReviewingThisRow = reviewingIssueId === issue.id;
 
                 return (
-                  <tr key={issue.id}>
+                  <tr
+                    key={issue.id}
+                    className={isPending ? 'admin-row-pending' : undefined}
+                  >
                     {/* Issue Title & Location */}
                     <td>
                       <div className="td-issue-title-group">
@@ -201,6 +256,37 @@ export default function AdminIssuesTable({
                         </svg>
                         {issue.upvotes}
                       </span>
+                    </td>
+
+                    {/* Review state + the approve/reject decision */}
+                    <td>
+                      <div className="moderation-cell">
+                        <span className={getModerationPillClass(moderationState)}>
+                          {getModerationLabel(issue)}
+                        </span>
+                        <div className="moderation-actions">
+                          <button
+                            type="button"
+                            className="btn-review-approve"
+                            onClick={() => onReviewClick(issue, 'approve')}
+                            title="Approve and publish to the campus board"
+                            aria-label={`Approve and publish: ${issue.title}`}
+                            disabled={isSaving || isReviewingThisRow}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-review-reject"
+                            onClick={() => onReviewClick(issue, 'reject')}
+                            title="Reject this report"
+                            aria-label={`Reject report: ${issue.title}`}
+                            disabled={isSaving || isReviewingThisRow}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </div>
                     </td>
 
                     {/* Interactive Status Selector */}

@@ -66,6 +66,8 @@ export const useAdminController = () => {
   const [reviewTarget, setReviewTarget] = useState(null); // { issue, decision }
   const [reviewNote, setReviewNote] = useState('');
   const [isReviewing, setIsReviewing] = useState(false);
+  // Which row is mid-review, so only that row's buttons lock.
+  const [reviewingIssueId, setReviewingIssueId] = useState(null);
 
   // Delete modal state
   const [issueToDelete, setIssueToDelete] = useState(null);
@@ -192,6 +194,7 @@ export const useAdminController = () => {
     setReviewTarget(null);
     setReviewNote('');
     setIsReviewing(true);
+    setReviewingIssueId(issue.id);
     try {
       const { message, issue: updated } = await reviewIssue(issue.id, decision, note);
 
@@ -212,10 +215,13 @@ export const useAdminController = () => {
       loadStats();
     } catch (err) {
       showToast('error', apiErrorMessage(err, 'Could not save that review decision.'));
+      // The decision did not land: put the row back so it stays reviewable.
+      loadIssues();
     } finally {
       setIsReviewing(false);
+      setReviewingIssueId(null);
     }
-  }, [reviewTarget, reviewNote, moderationFilter, loadStats, showToast]);
+  }, [reviewTarget, reviewNote, moderationFilter, loadIssues, loadStats, showToast]);
 
   // ── Status changes (PATCH /issues/:id/status, admin only) ──
 
@@ -339,6 +345,7 @@ export const useAdminController = () => {
     stats,
     currentUser,
     savingIssueId,
+    reviewingIssueId,
     toast,
     issueToResolve,
     resolutionNote,

@@ -24,6 +24,7 @@ export default function AdminHomePage() {
     stats,
     currentUser,
     savingIssueId,
+    reviewingIssueId,
     toast,
     issueToResolve,
     resolutionNote,
@@ -87,9 +88,11 @@ export default function AdminHomePage() {
           categories={categories}
           statuses={statuses}
           moderationFilters={moderationFilters}
+          pendingCount={stats?.pendingCount ?? 0}
           isLoading={isLoading}
           loadError={loadError}
           savingIssueId={savingIssueId}
+          reviewingIssueId={reviewingIssueId}
           onSearchChange={handleSearchChange}
           onStatusFilterChange={handleStatusFilterChange}
           onCategoryFilterChange={handleCategoryFilterChange}
