@@ -1,57 +1,59 @@
 // Service: Handles all API calls related to authentication
-import axios from 'axios';
+import { api, TOKEN_KEY, USER_KEY, getStoredToken } from './apiClient';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-const authApi = axios.create({
-  baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
-});
-
-// Attach JWT token to every request if available
-authApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem('fmc_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+const persistSession = ({ token, user }) => {
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+  if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+};
 
 /**
  * Login user (student or admin)
  * @param {{ email: string, password: string, role: string }} credentials
  * @returns {Promise<{ token: string, user: Object }>}
+ * @throws  axios error carrying the API's message (401/403 from the server)
  */
 export const loginUser = async ({ email, password, role }) => {
-  try {
-    const { data } = await authApi.post('/auth/login', { email, password, role });
-    if (data.token) {
-      localStorage.setItem('fmc_token', data.token);
-      localStorage.setItem('fmc_user', JSON.stringify(data.user));
-    }
-    return data;
-  } catch (err) {
-    // Graceful offline mock session for frontend testing
-    const mockUser = {
-      id: 'usr-1',
-      name: role === 'admin' ? 'Campus Admin' : 'Maya Sharma',
-      email: email || (role === 'admin' ? 'admin@campus.edu' : 'student@campus.edu'),
-      role: role || 'student',
-    };
-    const mockToken = 'demo-jwt-token-fixmycampus';
-    localStorage.setItem('fmc_token', mockToken);
-    localStorage.setItem('fmc_user', JSON.stringify(mockUser));
-    return { token: mockToken, user: mockUser };
-  }
+  const { data } = await api.post('/auth/login', {
+    email: (email || '').trim(),
+    password,
+    role,
+  });
+
+  persistSession({ token: data.token, user: data.user });
+  return data;
+};
+
+/**
+ * Register a new account. The API returns a token straight away,
+ * so the new user lands already signed in.
+ */
+export const registerUser = async ({ name, email, password, role }) => {
+  const { data } = await api.post('/auth/register', {
+    name: (name || '').trim(),
+    email: (email || '').trim(),
+    password,
+    role,
+  });
+
+  persistSession({ token: data.token, user: data.user });
+  return data;
+};
+
+/**
+ * Verify the stored token against GET /auth/me (e.g. on page reload).
+ */
+export const fetchCurrentUser = async () => {
+  const { data } = await api.get('/auth/me');
+  if (data?.user) localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  return data?.user || null;
 };
 
 /**
  * Logout current user
  */
 export const logoutUser = () => {
-  localStorage.removeItem('fmc_token');
-  localStorage.removeItem('fmc_user');
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
 };
 
 /**
@@ -60,7 +62,7 @@ export const logoutUser = () => {
  */
 export const getCurrentUser = () => {
   try {
-    const user = localStorage.getItem('fmc_user');
+    const user = localStorage.getItem(USER_KEY);
     return user ? JSON.parse(user) : null;
   } catch {
     return null;
@@ -71,6 +73,4 @@ export const getCurrentUser = () => {
  * Check if user is authenticated
  * @returns {boolean}
  */
-export const isAuthenticated = () => {
-  return !!localStorage.getItem('fmc_token');
-};
+export const isAuthenticated = () => !!getStoredToken();

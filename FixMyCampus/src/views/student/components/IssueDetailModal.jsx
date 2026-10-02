@@ -1,41 +1,41 @@
 // View Component: Issue Details & Comments Modal (Green Theme)
 import { useState } from 'react';
 
-export default function IssueDetailModal({ issue, isOpen, onClose, onUpvote }) {
+const STATUS_DOT_COLORS = {
+  open: '#ef4444',
+  'in progress': '#f59e0b',
+  resolved: '#16a34a',
+};
+
+export default function IssueDetailModal({
+  issue,
+  isOpen,
+  isPosting = false,
+  currentUser,
+  onClose,
+  onUpvote,
+  onAddComment,
+}) {
+  // Mounted per-issue (key={issue.id}), so the draft resets on every switch
   const [commentText, setCommentText] = useState('');
-  const [comments, setComments] = useState([
-    {
-      id: 'c-1',
-      author: 'Maya Sharma',
-      avatar: 'MS',
-      text: 'I noticed this earlier today during my morning lecture as well. Very hazardous.',
-      time: '12 min ago',
-    },
-    {
-      id: 'c-2',
-      author: 'Campus Maintenance Team',
-      avatar: 'CM',
-      text: 'A technician has been dispatched to inspect and resolve.',
-      time: '5 min ago',
-    },
-  ]);
+  const [commentError, setCommentError] = useState('');
 
   if (!isOpen || !issue) return null;
 
-  const handleAddComment = (e) => {
+  const comments = issue.comments || [];
+  const statusColor = STATUS_DOT_COLORS[issue.status?.toLowerCase()] || '#64748b';
+
+  const handleAddComment = async (e) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
+    if (!commentText.trim() || isPosting) return;
 
-    const newComment = {
-      id: `c-${Date.now()}`,
-      author: 'Maya Sharma',
-      avatar: 'MS',
-      text: commentText.trim(),
-      time: 'Just now',
-    };
-
-    setComments([newComment, ...comments]);
-    setCommentText('');
+    const posted = await onAddComment?.(issue.id, commentText);
+    if (posted) {
+      setCommentText('');
+      setCommentError('');
+    } else {
+      setCommentError('Could not post your comment. Please try again.');
+    }
   };
 
   return (
@@ -66,7 +66,7 @@ export default function IssueDetailModal({ issue, isOpen, onClose, onUpvote }) {
             <div className="detail-floating-tags">
               <span className="issue-card-cat-badge card-cat-water">{issue.category}</span>
               <span className="issue-card-status-badge">
-                <span className="status-indicator-dot" style={{ backgroundColor: '#ef4444' }} />
+                <span className="status-indicator-dot" style={{ backgroundColor: statusColor }} />
                 <span>{issue.status}</span>
               </span>
             </div>
@@ -89,9 +89,33 @@ export default function IssueDetailModal({ issue, isOpen, onClose, onUpvote }) {
             </div>
             <div className="detail-meta-box">
               <span className="detail-meta-lbl">REPORTED BY</span>
-              <span className="detail-meta-val">{issue.createdBy?.name || 'Aarav Mehta'}</span>
+              <span className="detail-meta-val">{issue.createdBy?.name || 'Campus member'}</span>
             </div>
           </div>
+
+          {/* Upvote — stays in sync with the card behind the modal */}
+          <div className="card-actions-left detail-upvote-row">
+            <button
+              type="button"
+              className={`action-btn-pill ${issue.upvotedByUser ? 'active-voted' : ''}`}
+              onClick={() => onUpvote?.(issue.id)}
+              aria-pressed={!!issue.upvotedByUser}
+              title="Upvote issue"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="footer-action-icon">
+                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+              </svg>
+              <span>{issue.upvotes}</span>
+            </button>
+          </div>
+
+          {/* Resolution note, when an admin has closed the issue */}
+          {issue.resolutionNote && (
+            <div className="detail-resolution-note">
+              <span className="detail-meta-lbl">RESOLUTION</span>
+              <p>{issue.resolutionNote}</p>
+            </div>
+          )}
 
           {/* Comments Section */}
           <div className="detail-comments-section">
@@ -106,27 +130,41 @@ export default function IssueDetailModal({ issue, isOpen, onClose, onUpvote }) {
                 placeholder="Add a comment or update on this issue…"
                 className="comment-text-input"
                 value={commentText}
+                maxLength={1000}
+                disabled={isPosting}
                 onChange={(e) => setCommentText(e.target.value)}
               />
-              <button type="submit" className="comment-submit-btn">
-                Post
+              <button type="submit" className="comment-submit-btn" disabled={isPosting}>
+                {isPosting ? 'Posting…' : 'Post'}
               </button>
             </form>
+            {commentError && <span className="modal-field-err">{commentError}</span>}
 
             {/* Comments stack */}
             <div className="comments-list-stack">
-              {comments.map((c) => (
-                <div key={c.id} className="comment-item">
-                  <div className="reporter-avatar-circle">{c.avatar}</div>
-                  <div className="comment-bubble">
-                    <div className="comment-author-row">
-                      <span className="comment-author-name">{c.author}</span>
-                      <span className="comment-time">{c.time}</span>
-                    </div>
-                    <p className="comment-text">{c.text}</p>
-                  </div>
-                </div>
-              ))}
+              {comments.length === 0 ? (
+                <p className="comments-empty-note">
+                  No comments yet — be the first to add an update.
+                </p>
+              ) : (
+                [...comments]
+                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                  .map((c) => {
+                    const isMine = currentUser?.id && String(c.userId) === String(currentUser.id);
+                    return (
+                      <div key={c.id} className="comment-item">
+                        <div className="reporter-avatar-circle">{c.avatar}</div>
+                        <div className="comment-bubble">
+                          <div className="comment-author-row">
+                            <span className="comment-author-name">{isMine ? 'You' : c.author}</span>
+                            <span className="comment-time">{c.time}</span>
+                          </div>
+                          <p className="comment-text">{c.text}</p>
+                        </div>
+                      </div>
+                    );
+                  })
+              )}
             </div>
           </div>
         </div>
