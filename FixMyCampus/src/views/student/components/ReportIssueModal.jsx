@@ -8,6 +8,7 @@ export default function ReportIssueModal({
   errors,
   isSubmitting,
   categories,
+  locations,
   onInputChange,
   onPhotoSelect,
   onRemovePhoto,
@@ -109,11 +110,19 @@ export default function ReportIssueModal({
                 id="modal-loc-input"
                 type="text"
                 name="location"
+                list="campus-location-options"
                 className={`modal-text-input ${errors.location ? 'error' : ''}`}
                 placeholder="Building, floor or room"
                 value={formData.location}
                 onChange={onInputChange}
               />
+              <datalist id="campus-location-options">
+                {(locations || [])
+                  .filter((loc) => loc !== 'All locations')
+                  .map((loc) => (
+                    <option key={loc} value={loc} />
+                  ))}
+              </datalist>
               {errors.location && <span className="modal-field-err">{errors.location}</span>}
             </div>
           </div>
@@ -141,7 +150,7 @@ export default function ReportIssueModal({
               type="file"
               ref={fileInputRef}
               style={{ display: 'none' }}
-              accept="image/png, image/jpeg, image/jpg"
+              accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
               onChange={onPhotoSelect}
             />
 
@@ -168,7 +177,7 @@ export default function ReportIssueModal({
                   <span className="photo-add-text">
                     <span className="plus-sign">+</span> Add a photo
                   </span>
-                  <span className="photo-note-text">Optional · JPG or PNG up to 5MB</span>
+                  <span className="photo-note-text">Optional · JPG, PNG, WEBP or GIF up to 5MB</span>
                 </div>
               </div>
             )}

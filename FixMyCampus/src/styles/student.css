@@ -1571,9 +1571,67 @@
   margin-bottom: 0.35rem;
 }
 
-.comment-tracking-sub {
-  font-size: 0.72rem;
+/* Confirmation banner shown after a successful report */
+.success-banner {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  border-radius: 14px;
+  padding: 0.85rem 1.2rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.issues-error-state {
+  border-style: solid;
+  border-color: #fecaca;
+  background-color: #fef2f2;
+  color: #991b1b;
+}
+
+/* Discussion */
+.comments-empty-note {
+  font-size: 0.86rem;
   color: #94a3b8;
+  padding: 0.5rem 0;
+}
+
+.comment-text-input:disabled,
+.comment-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.detail-upvote-row {
+  margin: 1rem 0 0.25rem;
+}
+
+/* Admin resolution note on a closed issue */
+.detail-resolution-note {
+  margin-top: 1rem;
+  padding: 0.9rem 1.1rem;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+}
+
+.detail-resolution-note p {
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+  color: #166534;
+  line-height: 1.5;
+}
+
+/* Empty State */
+.issues-empty-state {
+  grid-column: 1 / -1;
+  background-color: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 20px;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #64748b;
 }
 
 /* Add comment interactive row */

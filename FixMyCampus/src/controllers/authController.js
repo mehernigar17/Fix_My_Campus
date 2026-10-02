@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createLoginFormState, validateLoginForm, USER_ROLES } from '../models/authModel';
 import { loginUser } from '../services/authService';
+import { apiErrorMessage } from '../services/apiClient';
 
 /**
  * useAuthController - Custom hook acting as the Controller for auth flows
@@ -60,9 +61,7 @@ export const useAuthController = () => {
           navigate('/student/dashboard');
         }
       } catch (err) {
-        const message =
-          err?.response?.data?.message || 'Login failed. Please check your credentials.';
-        setApiError(message);
+        setApiError(apiErrorMessage(err, 'Login failed. Please check your credentials.'));
       } finally {
         setIsLoading(false);
       }

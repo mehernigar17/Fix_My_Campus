@@ -1,205 +1,217 @@
-// Service: Handles Issue-related API calls and local mock fallback persistence
-import axios from 'axios';
-import { INITIAL_ISSUES } from '../models/issueModel';
+// Service: Issue-related API calls against the FixMyCampus backend.
+// The API speaks snake_case + ObjectId; the UI expects camelCase display
+// labels, so every payload is normalised here and nowhere else.
+import { api, resolveAssetUrl } from './apiClient';
+import {
+  ALL_CATEGORY,
+  ALL_LOCATION,
+  ALL_STATUS,
+  STATUS_LABEL_TO_API,
+  API_TO_STATUS_LABEL,
+  derivePriority,
+  formatRelativeTime,
+  initialsFromName,
+} from '../models/issueModel';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+/**
+ * Convert an API issue into the shape the views render.
+ */
+const toUiIssue = (raw) => {
+  if (!raw) return null;
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
+  const reporterName = raw.reportedBy?.name || 'Campus member';
+  const upvoteCount = raw.upvoteCount ?? 0;
+
+  return {
+    id: raw._id,
+    title: raw.title || '',
+    description: raw.description || '',
+    category: raw.category || 'Other',
+    location: raw.location || '',
+    photo: resolveAssetUrl(raw.photo?.url),
+    status: API_TO_STATUS_LABEL[raw.status] || raw.status || 'Open',
+    priority: derivePriority(upvoteCount),
+    upvotes: upvoteCount,
+    upvotedByUser: !!raw.upvotedByMe,
+    commentsCount: raw.comments?.length || 0,
+    comments: (raw.comments || []).map((comment) => ({
+      id: comment._id,
+      text: comment.text,
+      createdAt: comment.createdAt,
+      time: formatRelativeTime(comment.createdAt),
+      author: comment.user?.name || 'Campus member',
+      userId: comment.user?._id || comment.user,
+      avatar: initialsFromName(comment.user?.name),
+    })),
+    createdBy: {
+      id: raw.reportedBy?._id || raw.reportedBy,
+      name: reporterName,
+      role: 'Student',
+      avatar: initialsFromName(reporterName),
+    },
+    resolutionNote: raw.resolutionNote || '',
+    resolvedAt: raw.resolvedAt,
+    createdAt: formatRelativeTime(raw.createdAt),
+  };
+};
+
+const toUiList = (payload) => ({
+  issues: (payload?.issues || []).map(toUiIssue),
+  total: payload?.total ?? 0,
+  count: payload?.count ?? payload?.issues?.length ?? 0,
+  page: payload?.page ?? 1,
+  pages: payload?.pages ?? 1,
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('fmc_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-const STORAGE_KEY = 'fmc_issues_data_v3';
-
-const getStoredIssues = () => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return INITIAL_ISSUES;
-    }
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_ISSUES));
-  return INITIAL_ISSUES;
-};
-
-const saveStoredIssues = (issues) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(issues));
-};
-
 /**
- * Fetch all issues with search and filter parameters
+ * Translate the filter bar's UI state into API query params.
+ * The "All" sentinels are dropped rather than sent (the API rejects them),
+ * and status labels are converted to their snake_case API values.
  */
-export const fetchIssues = async (params = {}) => {
-  try {
-    const { data } = await api.get('/issues', { params });
-    return data;
-  } catch (err) {
-    let issues = getStoredIssues();
+const buildQueryParams = (filters = {}, extra = {}) => {
+  const params = {};
 
-    if (params.category && params.category !== 'All') {
-      issues = issues.filter((i) => i.category.toLowerCase() === params.category.toLowerCase());
-    }
+  const search = (filters.search || '').trim();
+  if (search) params.search = search;
 
-    if (params.status && params.status !== 'All') {
-      issues = issues.filter((i) => i.status.toLowerCase() === params.status.toLowerCase());
-    }
-
-    if (params.location && params.location !== 'All locations') {
-      issues = issues.filter((i) => i.location.toLowerCase().includes(params.location.toLowerCase()));
-    }
-
-    if (params.search && params.search.trim()) {
-      const q = params.search.toLowerCase().trim();
-      issues = issues.filter(
-        (i) =>
-          i.title.toLowerCase().includes(q) ||
-          i.description.toLowerCase().includes(q) ||
-          i.location.toLowerCase().includes(q) ||
-          i.category.toLowerCase().includes(q)
-      );
-    }
-
-    return { issues, total: issues.length };
+  if (filters.category && filters.category !== ALL_CATEGORY) {
+    params.category = filters.category;
   }
+
+  if (filters.status && filters.status !== ALL_STATUS) {
+    params.status = STATUS_LABEL_TO_API[filters.status] || filters.status;
+  }
+
+  if (filters.location && filters.location !== ALL_LOCATION) {
+    params.location = filters.location;
+  }
+
+  return { ...params, ...extra };
 };
 
 /**
- * Toggle upvote on an issue
+ * Fetch campus issues with search + filters (GET /issues).
+ * @param {Object} filters  UI filter state
+ * @param {Object} options  { mine: boolean, sort: 'newest'|'oldest'|'upvotes', limit, page }
  */
-export const toggleUpvote = async (issueId) => {
-  try {
-    const { data } = await api.post(`/issues/${issueId}/upvote`);
-    return data;
-  } catch (err) {
-    const issues = getStoredIssues();
-    const updated = issues.map((item) => {
-      if (item.id === issueId) {
-        const isUpvoted = !item.upvotedByUser;
-        return {
-          ...item,
-          upvotedByUser: isUpvoted,
-          upvotes: isUpvoted ? item.upvotes + 1 : Math.max(0, item.upvotes - 1),
-        };
-      }
-      return item;
-    });
-    saveStoredIssues(updated);
-    const target = updated.find((i) => i.id === issueId);
-    return { success: true, issue: target };
-  }
+export const fetchIssues = async (filters = {}, options = {}) => {
+  const { mine = false, sort = 'newest', limit = 50, page = 1 } = options;
+  const extra = { sort, limit: String(limit), page: String(page) };
+  if (mine) extra.mine = 'true';
+
+  const { data } = await api.get('/issues', { params: buildQueryParams(filters, extra) });
+  return toUiList(data);
 };
 
 /**
- * Create a new issue
+ * Fetch only the signed-in user's issues (GET /my/issues).
+ */
+export const fetchMyIssues = async (filters = {}, options = {}) => {
+  const { limit = 50, page = 1 } = options;
+  const { data } = await api.get('/my/issues', {
+    params: buildQueryParams(filters, { limit: String(limit), page: String(page) }),
+  });
+  return toUiList(data);
+};
+
+/**
+ * Fetch one issue with its discussion (GET /issues/:id).
+ */
+export const fetchIssue = async (issueId) => {
+  const { data } = await api.get(`/issues/${issueId}`);
+  return toUiIssue(data.issue);
+};
+
+/**
+ * Create an issue (POST /issues, multipart/form-data so the optional photo
+ * uploads as a real binary part rather than a JSON string).
  */
 export const createIssue = async (issueData) => {
-  try {
-    const { data } = await api.post('/issues', issueData);
-    return data;
-  } catch (err) {
-    const issues = getStoredIssues();
-    const newIssue = {
-      id: `iss-${Date.now()}`,
-      code: `FMC-${Math.floor(100 + Math.random() * 900)}`,
-      issueIdFormatted: `ISS-00${Math.floor(100 + Math.random() * 900)}`,
-      title: issueData.title,
-      description: issueData.description,
-      category: issueData.category || 'Other',
-      priority: 'HIGH PRIORITY',
-      status: 'Open',
-      location: issueData.location || 'Campus Main',
-      createdBy: {
-        name: 'Maya Sharma',
-        userId: 'USR-011',
-        role: 'Student',
-        avatar: 'MS',
-      },
-      upvotes: 1,
-      upvotedByUser: true,
-      upvoteVoters: ['MS'],
-      commentsCount: 0,
-      createdAt: 'Just now',
-      createdAtFormatted: 'Today, Just now',
-      photo: issueData.photoPreview || issueData.photo || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&auto=format&fit=crop&q=80',
-      comments: [],
-    };
-    const updated = [newIssue, ...issues];
-    saveStoredIssues(updated);
-    return { success: true, issue: newIssue };
+  const form = new FormData();
+  form.append('title', (issueData.title || '').trim());
+  form.append('description', (issueData.description || '').trim());
+  form.append('category', issueData.category);
+  form.append('location', (issueData.location || '').trim());
+
+  if (issueData.photo instanceof File) {
+    form.append('photo', issueData.photo);
   }
+
+  const { data } = await api.post('/issues', form);
+  return { message: data.message, issue: toUiIssue(data.issue) };
 };
 
 /**
- * Update issue status (Admin only - PATCH /issues/:id/status)
+ * Toggle the caller's upvote (POST /issues/:id/upvote).
+ * @returns {{ upvoted: boolean, upvoteCount: number }}
  */
-export const updateIssueStatus = async (issueId, newStatus) => {
-  try {
-    const { data } = await api.patch(`/issues/${issueId}/status`, { status: newStatus });
-    return data;
-  } catch (err) {
-    const issues = getStoredIssues();
-    const updated = issues.map((item) => {
-      if (item.id === issueId) {
-        return {
-          ...item,
-          status: newStatus,
-        };
-      }
-      return item;
-    });
-    saveStoredIssues(updated);
-    const target = updated.find((i) => i.id === issueId);
-    return { success: true, issue: target };
-  }
+export const toggleUpvote = async (issueId) => {
+  const { data } = await api.post(`/issues/${issueId}/upvote`);
+  return { upvoted: !!data.upvoted, upvoteCount: data.upvoteCount ?? 0 };
 };
 
 /**
- * Delete issue (Owner or Admin - DELETE /issues/:id)
+ * Post a comment on an issue (POST /issues/:id/comments).
+ */
+export const addComment = async (issueId, text) => {
+  const { data } = await api.post(`/issues/${issueId}/comments`, { text: (text || '').trim() });
+  const refreshed = toUiIssue(data.issue);
+  return {
+    message: data.message,
+    comment: {
+      id: data.comment?._id,
+      text: data.comment?.text,
+      createdAt: data.comment?.createdAt,
+      time: formatRelativeTime(data.comment?.createdAt),
+      author: data.comment?.user?.name || 'You',
+      userId: data.comment?.user?._id,
+      avatar: initialsFromName(data.comment?.user?.name),
+    },
+    issue: refreshed,
+  };
+};
+
+/**
+ * Delete one of the user's own issues (DELETE /issues/:id).
  */
 export const deleteIssue = async (issueId) => {
-  try {
-    const { data } = await api.delete(`/issues/${issueId}`);
-    return data;
-  } catch (err) {
-    const issues = getStoredIssues();
-    const filtered = issues.filter((i) => i.id !== issueId);
-    saveStoredIssues(filtered);
-    return { success: true, id: issueId };
-  }
+  const { data } = await api.delete(`/issues/${issueId}`);
+  return data;
 };
 
 /**
- * Fetch campus community statistics
+ * Campus stats for the hero panel (GET /stats).
+ * Shaped to what StudentHeroStats renders: resolvedCount, resolvedThisMonth,
+ * inProgressCount, avgResolutionTime.
  */
 export const fetchStats = async () => {
-  try {
-    const { data } = await api.get('/stats');
-    return data;
-  } catch (err) {
-    const issues = getStoredIssues();
-    const openCount = issues.filter((i) => i.status.toLowerCase() === 'open').length;
-    const inProgressCount = issues.filter((i) => i.status.toLowerCase() === 'in progress').length;
-    const resolvedCount = issues.filter((i) => i.status.toLowerCase() === 'resolved').length;
-    const totalUpvotes = issues.reduce((sum, item) => sum + (item.upvotes || 0), 0);
+  const { data } = await api.get('/stats');
+  const byStatus = data?.byStatus || {};
 
-    return {
-      openCount,
-      inProgressCount,
-      resolvedCount,
-      totalUpvotes,
-      resolvedThisMonth: '+18 this month',
-      avgResolutionTime: '3.2 days',
-    };
-  }
+  const avgDays = data?.avgResolutionDays;
+  const avgResolutionTime =
+    typeof avgDays === 'number'
+      ? `${avgDays.toFixed(1)} ${avgDays === 1 ? 'day' : 'days'}`
+      : '—';
+
+  return {
+    total: data?.total ?? 0,
+    resolvedCount: byStatus.resolved ?? 0,
+    inProgressCount: byStatus.in_progress ?? 0,
+    openCount: byStatus.open ?? 0,
+    resolvedThisMonth: `${data?.resolvedThisMonth ?? 0} this month`,
+    avgResolutionTime,
+    byStatus,
+    byCategory: data?.byCategory || {},
+    topUpvoted: (data?.topUpvoted || []).map(toUiIssue),
+  };
+};
+
+/**
+ * Categories + statuses straight from the API (GET /issues/categories).
+ * Used as a fallback if the static lists ever drift from the API.
+ */
+export const fetchCategories = async () => {
+  const { data } = await api.get('/issues/categories');
+  return { categories: data?.categories || [], statuses: data?.statuses || [] };
 };

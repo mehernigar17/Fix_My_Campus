@@ -1,4 +1,5 @@
 // View Page: Student Home / Explore Page (MVC Student Module)
+import { useEffect } from 'react';
 import { useStudentIssuesController } from '../../controllers/student/useStudentIssuesController';
 import StudentNavbar from './components/StudentNavbar';
 import StudentHeroStats from './components/StudentHeroStats';
@@ -13,12 +14,14 @@ export default function StudentHomePage() {
     issues,
     totalCount,
     isLoading,
+    loadError,
     stats,
     filters,
     categories,
     statuses,
     locations,
     currentUser,
+    isMyReportsView,
     handleSearchChange,
     handleCategoryChange,
     handleStatusChange,
@@ -29,6 +32,9 @@ export default function StudentHomePage() {
     newIssueData,
     formErrors,
     isSubmitting,
+    isPostingComment,
+    successMessage,
+    clearSuccessMessage,
     handleOpenReportModal,
     handleCloseReportModal,
     handleViewDetails,
@@ -37,7 +43,15 @@ export default function StudentHomePage() {
     handlePhotoSelect,
     handleRemovePhoto,
     handleCreateIssueSubmit,
+    handleAddComment,
   } = useStudentIssuesController();
+
+  // Auto-dismiss the success banner after a few seconds
+  useEffect(() => {
+    if (!successMessage) return undefined;
+    const timer = setTimeout(clearSuccessMessage, 5000);
+    return () => clearTimeout(timer);
+  }, [successMessage, clearSuccessMessage]);
 
   return (
     <div className="student-home-page">
@@ -50,6 +64,13 @@ export default function StudentHomePage() {
       <main className="student-main-content">
         {/* Hero Section & Community Stats */}
         <StudentHeroStats stats={stats} />
+
+        {/* Confirmation banner after a successful report */}
+        {successMessage && (
+          <div className="success-banner" role="status">
+            {successMessage}
+          </div>
+        )}
 
         {/* Filters & Search Bar */}
         <StudentIssuesFilterBar
@@ -64,28 +85,42 @@ export default function StudentHomePage() {
           onLocationChange={handleLocationChange}
         />
 
+        {/* Load error */}
+        {loadError && (
+          <div className="issues-empty-state issues-error-state" role="alert">
+            <h3>We couldn&apos;t load the reports</h3>
+            <p>{loadError}</p>
+          </div>
+        )}
+
         {/* Issue Cards Grid */}
-        <div className="issues-cards-grid">
-          {isLoading ? (
-            <div className="issues-empty-state">
-              <p>Loading campus issues…</p>
-            </div>
-          ) : issues.length === 0 ? (
-            <div className="issues-empty-state">
-              <h3>No matching reports found</h3>
-              <p>Try changing your search keywords or filter options.</p>
-            </div>
-          ) : (
-            issues.map((issue) => (
-              <StudentIssueCard
-                key={issue.id}
-                issue={issue}
-                onUpvote={handleUpvote}
-                onViewDetails={handleViewDetails}
-              />
-            ))
-          )}
-        </div>
+        {!loadError && (
+          <div className="issues-cards-grid">
+            {isLoading ? (
+              <div className="issues-empty-state">
+                <p>Loading campus issues…</p>
+              </div>
+            ) : issues.length === 0 ? (
+              <div className="issues-empty-state">
+                <h3>{isMyReportsView ? 'You haven’t reported anything yet' : 'No matching reports found'}</h3>
+                <p>
+                  {isMyReportsView
+                    ? 'Use “Report an issue” to flag something that needs fixing on campus.'
+                    : 'Try changing your search keywords or filter options.'}
+                </p>
+              </div>
+            ) : (
+              issues.map((issue) => (
+                <StudentIssueCard
+                  key={issue.id}
+                  issue={issue}
+                  onUpvote={handleUpvote}
+                  onViewDetails={handleViewDetails}
+                />
+              ))
+            )}
+          </div>
+        )}
       </main>
 
       {/* Report Issue Modal */}
@@ -105,10 +140,14 @@ export default function StudentHomePage() {
 
       {/* Issue Detail & Discussion Modal */}
       <IssueDetailModal
+        key={selectedIssue?.id || 'none'}
         issue={selectedIssue}
         isOpen={!!selectedIssue}
+        isPosting={isPostingComment}
+        currentUser={currentUser}
         onClose={handleCloseDetailModal}
         onUpvote={handleUpvote}
+        onAddComment={handleAddComment}
       />
     </div>
   );

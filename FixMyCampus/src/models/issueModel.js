@@ -1,6 +1,9 @@
-// Model: Defines shapes, categories, statuses, and validation for Issues
-export const ISSUE_CATEGORIES = [
-  'All',
+// Model: Shapes, categories, statuses, and validation for Issues
+// Values here mirror the API contract in FixMyCampus_backend:
+//   categories: Electrical | Water | Cleanliness | Furniture | Internet | Other
+//   statuses:   open | in_progress | resolved
+export const API_CATEGORIES = [
+  'Water',
   'Electrical',
   'Water',
   'Internet',
@@ -9,149 +12,50 @@ export const ISSUE_CATEGORIES = [
   'Other',
 ];
 
-export const ISSUE_STATUSES = [
-  'All',
-  'Open',
-  'In Progress',
-  'Resolved',
-];
+export const ISSUE_CATEGORIES = ['All', ...API_CATEGORIES];
+
+// The API uses snake_case statuses; the UI shows human labels.
+export const STATUS_LABEL_TO_API = {
+  Open: 'open',
+  'In Progress': 'in_progress',
+  Resolved: 'resolved',
+};
+
+export const API_TO_STATUS_LABEL = {
+  open: 'Open',
+  in_progress: 'In Progress',
+  resolved: 'Resolved',
+};
+
+export const ISSUE_STATUSES = ['All', 'Open', 'In Progress', 'Resolved'];
+
+// Sentinels used by the filter bar; never forwarded to the API.
+export const ALL_CATEGORY = 'All';
+export const ALL_STATUS = 'All';
+export const ALL_LOCATION = 'All locations';
 
 export const CAMPUS_LOCATIONS = [
-  'All locations',
-  'Block C · Main pathway',
-  'Academic Block A · Floor 2',
-  'Central Library · West Wing',
-  'Student Centre · Ground Floor',
-  'Hostel Block B · Floor 3',
-  'Central Cafeteria · East Wing',
+  ALL_LOCATION,
+  'Block C · Ground Floor',
+  'Main Library · 2nd Floor',
+  'Science Block · Room 104',
+  'Hostel Block B · 3rd Floor',
+  'Central Cafeteria',
   'Computer Lab 3 · Block A',
   'Sports Complex',
 ];
 
-export const INITIAL_ISSUES = [
-  {
-    id: 'iss-1',
-    code: 'FMC-101',
-    issueIdFormatted: 'ISS-00101',
-    title: 'Street lights not working near Block C',
-    description: 'Multiple street poles along the main pathway to Block C are non-functional, making the walkway very dark at night.',
-    category: 'Electrical',
-    priority: 'HIGH PRIORITY',
-    status: 'Resolved',
-    location: 'Block C · Main pathway',
-    createdBy: {
-      name: 'Rohan Sharma',
-      userId: 'USR-014',
-      role: 'Student',
-      avatar: 'RS',
-    },
-    upvotes: 128,
-    upvotedByUser: false,
-    upvoteVoters: ['RS', 'AK', 'MP'],
-    createdAt: 'Yesterday',
-    createdAtFormatted: 'Yesterday, 06:30 PM',
-    photo: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&auto=format&fit=crop&q=80',
-    comments: [
-      {
-        id: 'cmt-1',
-        code: 'CMT-101',
-        userId: 'USR-004',
-        author: 'Campus Electrician',
-        badge: 'Staff',
-        avatar: 'CE',
-        avatarColor: '#dcfce7',
-        textColor: '#166534',
-        text: 'Replaced faulty junction fuse and tested all bulbs. Pathway is now lit.',
-        time: 'Yesterday',
-      },
-    ],
-  },
-  {
-    id: 'iss-2',
-    code: 'FMC-102',
-    issueIdFormatted: 'ISS-00102',
-    title: 'Water cooler leaking on second floor',
-    description: 'The cooler has been leaking since yesterday and the floor is getting slippery near lecture hall 204.',
-    category: 'Water',
-    priority: 'HIGH PRIORITY',
-    status: 'In Progress',
-    location: 'Academic Block A · Floor 2',
-    createdBy: {
-      name: 'Aarav Mehta',
-      userId: 'USR-018',
-      role: 'Student',
-      avatar: 'AM',
-    },
-    upvotes: 86,
-    upvotedByUser: false,
-    upvoteVoters: ['AM', 'SK', 'RJ'],
-    createdAt: 'Today, 10:15 AM',
-    createdAtFormatted: 'Today, 10:15 AM',
-    photo: 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&auto=format&fit=crop&q=80',
-    comments: [
-      {
-        id: 'cmt-2',
-        code: 'CMT-102',
-        userId: 'USR-002',
-        author: 'Plumbing Unit',
-        badge: 'Staff',
-        avatar: 'PU',
-        avatarColor: '#fef3c7',
-        textColor: '#92400e',
-        text: 'Drain pipe being replaced today.',
-        time: '1 hour ago',
-      },
-    ],
-  },
-  {
-    id: 'iss-3',
-    code: 'FMC-103',
-    issueIdFormatted: 'ISS-00103',
-    title: 'Wi-Fi keeps dropping in the library',
-    description: 'Signal in the west wing study area drops every few minutes causing interruptions during research work.',
-    category: 'Internet',
-    priority: 'HIGH PRIORITY',
-    status: 'Open',
-    location: 'Central Library · West Wing',
-    createdBy: {
-      name: 'Riya Patel',
-      userId: 'USR-011',
-      role: 'Student',
-      avatar: 'RP',
-    },
-    upvotes: 64,
-    upvotedByUser: false,
-    upvoteVoters: ['RP', 'MS', 'KL'],
-    createdAt: 'Today, 09:30 AM',
-    createdAtFormatted: 'Today, 09:30 AM',
-    photo: 'https://images.unsplash.com/photo-1519452635265-7b1fbfd1e4e0?w=800&auto=format&fit=crop&q=80',
-    comments: [],
-  },
-  {
-    id: 'iss-4',
-    code: 'FMC-104',
-    issueIdFormatted: 'ISS-00104',
-    title: 'Washroom needs urgent cleaning',
-    description: 'Ground floor student centre washrooms need cleaning, soap refills, and water check.',
-    category: 'Cleanliness',
-    priority: 'HIGH PRIORITY',
-    status: 'Open',
-    location: 'Student Centre · Ground Floor',
-    createdBy: {
-      name: 'Devin Patel',
-      userId: 'USR-025',
-      role: 'Student',
-      avatar: 'DP',
-    },
-    upvotes: 52,
-    upvotedByUser: false,
-    upvoteVoters: ['DP', 'PN', 'VA'],
-    createdAt: 'Today, 08:45 AM',
-    createdAtFormatted: 'Today, 08:45 AM',
-    photo: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&auto=format&fit=crop&q=80',
-    comments: [],
-  },
-];
+// ── Field limits enforced by the backend (kept in sync here so the form can
+//    fail fast instead of round-tripping to a 400) ──
+export const ISSUE_LIMITS = {
+  titleMin: 5,
+  titleMax: 120,
+  descriptionMin: 10,
+  descriptionMax: 2000,
+  locationMin: 3,
+  locationMax: 160,
+  commentMax: 1000,
+};
 
 export const createNewIssueState = () => ({
   title: '',
@@ -165,24 +69,35 @@ export const createNewIssueState = () => ({
 export const validateIssueForm = ({ title, description, category, location }) => {
   const errors = {};
 
-  if (!title || !title.trim()) {
+  const cleanTitle = (title || '').trim();
+  if (!cleanTitle) {
     errors.title = 'Issue title is required.';
-  } else if (title.trim().length < 4) {
-    errors.title = 'Title must be at least 4 characters long.';
+  } else if (cleanTitle.length < ISSUE_LIMITS.titleMin) {
+    errors.title = `Title must be at least ${ISSUE_LIMITS.titleMin} characters long.`;
+  } else if (cleanTitle.length > ISSUE_LIMITS.titleMax) {
+    errors.title = `Title cannot exceed ${ISSUE_LIMITS.titleMax} characters.`;
   }
 
-  if (!category || category === 'All' || !category.trim()) {
+  if (!category || category === ALL_CATEGORY || !category.trim()) {
     errors.category = 'Please select a category.';
   }
 
-  if (!location || location === 'All locations' || !location.trim()) {
+  const cleanLocation = (location || '').trim();
+  if (!cleanLocation) {
     errors.location = 'Please specify building, floor or room.';
+  } else if (cleanLocation.length < ISSUE_LIMITS.locationMin) {
+    errors.location = `Location must be at least ${ISSUE_LIMITS.locationMin} characters.`;
+  } else if (cleanLocation.length > ISSUE_LIMITS.locationMax) {
+    errors.location = `Location cannot exceed ${ISSUE_LIMITS.locationMax} characters.`;
   }
 
-  if (!description || !description.trim()) {
+  const cleanDescription = (description || '').trim();
+  if (!cleanDescription) {
     errors.description = 'Please provide a description.';
-  } else if (description.trim().length < 8) {
-    errors.description = 'Description must be at least 8 characters long.';
+  } else if (cleanDescription.length < ISSUE_LIMITS.descriptionMin) {
+    errors.description = `Description must be at least ${ISSUE_LIMITS.descriptionMin} characters long.`;
+  } else if (cleanDescription.length > ISSUE_LIMITS.descriptionMax) {
+    errors.description = `Description cannot exceed ${ISSUE_LIMITS.descriptionMax} characters.`;
   }
 
   return {
@@ -190,3 +105,53 @@ export const validateIssueForm = ({ title, description, category, location }) =>
     errors,
   };
 };
+
+// ── Display helpers ──
+
+/**
+ * Two-letter avatar initials from a display name.
+ */
+export const initialsFromName = (name = '') => {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('');
+};
+
+/**
+ * Human-friendly "18 min ago" from an ISO timestamp.
+ */
+export const formatRelativeTime = (iso) => {
+  if (!iso) return '';
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+
+  const minutes = Math.floor((Date.now() - then) / 60000);
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`;
+
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months > 1 ? 's' : ''} ago`;
+
+  const years = Math.floor(days / 365);
+  return `${years} year${years > 1 ? 's' : ''} ago`;
+};
+
+/**
+ * The API stores no priority field, so the badge is derived from community
+ * signal: a well-supported issue reads as high priority.
+ */
+export const HIGH_PRIORITY_UPVOTE_THRESHOLD = 10;
+
+export const derivePriority = (upvoteCount = 0) =>
+  (upvoteCount || 0) >= HIGH_PRIORITY_UPVOTE_THRESHOLD
+    ? 'HIGH PRIORITY'
+    : 'NORMAL PRIORITY';

@@ -2,10 +2,8 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { USER_ROLES } from '../models/authModel';
-import { loginUser } from '../services/authService';
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { registerUser } from '../services/authService';
+import { apiErrorMessage } from '../services/apiClient';
 
 /**
  * Validate registration form fields
@@ -80,30 +78,17 @@ export const useRegisterController = () => {
 
       setIsLoading(true);
       try {
-        // Call register endpoint
-        const { data } = await axios.post(`${API_BASE_URL}/auth/register`, {
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          password: formData.password,
-          role: formData.role,
-        });
-
-        // Store token and user returned from register
-        if (data.token) {
-          localStorage.setItem('fmc_token', data.token);
-          localStorage.setItem('fmc_user', JSON.stringify(data.user));
-        }
+        // Creates the account and signs the user in (the API returns a token)
+        const { user } = await registerUser(formData);
 
         // Redirect based on role
-        if (data.user.role === USER_ROLES.ADMIN) {
+        if (user.role === USER_ROLES.ADMIN) {
           navigate('/admin/dashboard');
         } else {
           navigate('/student/dashboard');
         }
       } catch (err) {
-        const message =
-          err?.response?.data?.message || 'Registration failed. Please try again.';
-        setApiError(message);
+        setApiError(apiErrorMessage(err, 'Registration failed. Please try again.'));
       } finally {
         setIsLoading(false);
       }
